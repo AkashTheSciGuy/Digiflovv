@@ -80,6 +80,286 @@ function initializeStorefront() {
     });
   });
 }
+function initializeProductDemo() {
+  const durationInput =
+    document.getElementById("demo-duration");
 
-if (typeof document !== "undefined") initializeStorefront();
+  if (!durationInput) {
+    return;
+  }
+
+
+  const durationValue =
+    document.getElementById(
+      "demo-duration-value"
+    );
+
+  const durationDisplay =
+    document.getElementById(
+      "demo-duration-display"
+    );
+
+  const routineDuration =
+    document.getElementById(
+      "demo-routine-duration"
+    );
+
+  const wateringTime =
+    document.getElementById(
+      "demo-watering-time"
+    );
+
+  const nextTime =
+    document.getElementById(
+      "demo-next-time"
+    );
+
+  const routineSummary =
+    document.getElementById(
+      "demo-routine-summary"
+    );
+
+  const saveButton =
+    document.getElementById(
+      "demo-save-schedule"
+    );
+
+  const waterButton =
+    document.getElementById(
+      "demo-water-now"
+    );
+
+  const wateringStatus =
+    document.getElementById(
+      "watering-status"
+    );
+
+  const wateringTitle =
+    document.getElementById(
+      "watering-status-title"
+    );
+
+  const wateringText =
+    document.getElementById(
+      "watering-status-text"
+    );
+
+  const reservoir =
+    document.getElementById(
+      "demo-reservoir"
+    );
+
+  const reservoirBar =
+    document.getElementById(
+      "demo-reservoir-bar"
+    );
+
+
+  let reservoirLevel = 78;
+  let wateringTimer = null;
+
+
+  function formatDays(days) {
+    if (days.length === 0) {
+      return "No watering days selected";
+    }
+
+    if (days.length === 1) {
+      return days[0];
+    }
+
+    if (days.length === 2) {
+      return `${days[0]} and ${days[1]}`;
+    }
+
+    return (
+      days.slice(0, -1).join(", ") +
+      " and " +
+      days[days.length - 1]
+    );
+  }
+
+
+  function getSelectedDays() {
+    return Array.from(
+      document.querySelectorAll(
+        ".schedule-days input:checked"
+      )
+    ).map(input => input.value);
+  }
+
+
+  function updateDuration() {
+    const seconds =
+      Number(durationInput.value);
+
+    durationValue.textContent =
+      `${seconds} sec`;
+
+    durationDisplay.textContent =
+      `${seconds} sec`;
+
+    routineDuration.textContent =
+      `Water for ${seconds} seconds`;
+  }
+
+
+  function saveSchedule() {
+    const selectedDays =
+      getSelectedDays();
+
+    const time =
+      wateringTime.value || "08:00";
+
+
+    if (selectedDays.length === 0) {
+      routineSummary.textContent =
+        "No automatic watering days selected";
+
+      document.getElementById(
+        "demo-next-watering"
+      ).textContent = "Paused";
+
+      nextTime.textContent = "—";
+
+      return;
+    }
+
+
+    routineSummary.textContent =
+      `${formatDays(selectedDays)} at ${time}`;
+
+    document.getElementById(
+      "demo-next-watering"
+    ).textContent =
+      selectedDays[0];
+
+    nextTime.textContent =
+      time;
+
+
+    const originalText =
+      saveButton.textContent;
+
+    saveButton.textContent =
+      "Schedule saved ✓";
+
+    saveButton.disabled = true;
+
+
+    window.setTimeout(() => {
+      saveButton.textContent =
+        originalText;
+
+      saveButton.disabled = false;
+    }, 1200);
+  }
+
+
+  function stopWatering() {
+    wateringStatus.classList.remove(
+      "is-watering"
+    );
+
+    wateringTitle.textContent =
+      "Watering complete";
+
+    wateringText.textContent =
+      "The system is ready for the next cycle.";
+
+    waterButton.disabled = false;
+
+    waterButton.innerHTML =
+      'Water now <span aria-hidden="true">↗</span>';
+
+    wateringTimer = null;
+
+
+    window.setTimeout(() => {
+      wateringTitle.textContent =
+        "System ready";
+
+      wateringText.textContent =
+        "Waiting for the next scheduled cycle.";
+    }, 2500);
+  }
+
+
+  function startWatering() {
+    if (wateringTimer) {
+      return;
+    }
+
+
+    const duration =
+      Number(durationInput.value);
+
+
+    wateringStatus.classList.add(
+      "is-watering"
+    );
+
+    wateringTitle.textContent =
+      "Watering now";
+
+    wateringText.textContent =
+      `Running a ${duration}-second watering cycle.`;
+
+    waterButton.disabled = true;
+    waterButton.textContent =
+      "Watering…";
+
+
+    reservoirLevel =
+      Math.max(
+        0,
+        reservoirLevel - 3
+      );
+
+    reservoir.textContent =
+      `${reservoirLevel}%`;
+
+    reservoirBar.style.width =
+      `${reservoirLevel}%`;
+
+
+    /*
+      The real product may water for
+      20+ seconds.
+
+      For the website demo we shorten
+      the visual simulation to 3 seconds.
+    */
+    wateringTimer =
+      window.setTimeout(
+        stopWatering,
+        3000
+      );
+  }
+
+
+  durationInput.addEventListener(
+    "input",
+    updateDuration
+  );
+
+
+  saveButton.addEventListener(
+    "click",
+    saveSchedule
+  );
+
+
+  waterButton.addEventListener(
+    "click",
+    startWatering
+  );
+
+
+  updateDuration();
+}
+if (typeof document !== "undefined") {
+  initializeStorefront();
+  initializeProductDemo();
+}
 if (typeof module !== "undefined") module.exports = { getCheckoutUrl, getSalesState, getLaunchIssues };
