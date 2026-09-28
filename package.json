@@ -4,8 +4,7 @@
   "private": true,
   "description": "DigiFlovv product website",
   "scripts": {
-    "start": "node server/server.js",
-    "dev": "node server/server.js",
+    "dev": "node scripts/serve.cjs",
     "test": "node --test tests/*.test.cjs",
     "check:launch": "node scripts/check-launch.cjs"
   },
