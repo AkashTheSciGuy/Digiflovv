@@ -11,10 +11,5 @@
   },
   "engines": {
     "node": ">=20"
-  },
-  "dependencies": {
-    "@neondatabase/serverless": "^1.1.0",
-    "dotenv": "^18.0.4",
-    "express": "^5.2.1"
   }
 }
