@@ -1,0 +1,12 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "DigiFlovv: Debug in Edge",
+      "type": "msedge",
+      "request": "launch",
+      "url": "http://127.0.0.1:5500",
+      "webRoot": "${workspaceFolder}/dist"
+    }
+  ]
+}

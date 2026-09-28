@@ -1,0 +1,10 @@
+{
+  "folders": [{ "name": "DigiFlovv", "path": "." }],
+  "settings": {
+    "files.encoding": "utf8",
+    "files.trimTrailingWhitespace": true,
+    "files.insertFinalNewline": true,
+    "editor.tabSize": 2,
+    "editor.wordWrap": "on"
+  }
+}
