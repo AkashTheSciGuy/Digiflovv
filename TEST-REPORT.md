@@ -26,3 +26,14 @@ Browser engines were tested on Windows using emulated viewport sizes, not physic
 Approved product photos/specifications, support email, public domain and approved privacy/website policies remain owner-supplied content. Product gallery stays hidden until configured. Enquiries prepare local drafts; no submission backend or automatic email delivery is implied. The support email action appears only when a valid address is supplied.
 
 Run npm run check, npm test, npm run test:browser and npm run check:launch to reproduce checks. See README.md for browser installation and build instructions. Nothing was publicly deployed.
+
+## Account page update — October 20, 2026
+
+- All-page static checks and local build: passed.
+- Unit/integration suite: 16 passed, 0 failed.
+- Account browser suite: 15 scenarios passed across Chromium, Firefox and WebKit, including four viewport widths, automated accessibility, signup/login validation, empty dashboard, reload/logout, expiry, corrupt/blocked storage, fixed redirects and disabled JavaScript.
+- Existing storefront browser suite: all 18 scenarios passed again after navigation changes.
+- Desktop and mobile signup screenshots visually reviewed.
+- Accounts remain a clearly labelled preview. No credential verification, account persistence, Supabase integration or dashboard features are claimed. Passwords are not stored or sent.
+
+Reproduce account checks with `npm run test:auth`. See AUTH-PREVIEW.md for the next integration phase.

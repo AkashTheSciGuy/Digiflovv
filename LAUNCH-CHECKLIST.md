@@ -4,6 +4,8 @@
 
 Local product showcase and enquiries. The owner explicitly excluded payments on October 20, 2026. Checkout, payment verification, orders, customer databases, refunds and payment notifications are therefore outside this release. The database/payment phases in the documents are conditional on handling sales directly.
 
+The account pages are a frontend preview only. Supabase authentication and real customer accounts are a later phase. Keep the preview notice visible until that integration is complete. The dashboard content remains empty.
+
 ## Implemented
 
 - Product sections, responsive layout, mobile navigation and enquiries.
@@ -33,7 +35,7 @@ These values remain pending. The site does not invent them. The gallery remains 
 
 1. Complete the content above and update FAQ answers.
 2. Run `npm run check:launch` and review all warnings.
-3. Run `npm run check`, `npm test`, `npm run test:browser` and `npm audit`.
+3. Run `npm run check`, `npm test`, `npm run test:browser`, `npm run test:auth` and `npm audit`.
 4. Manually review the final content, videos/captions, keyboard flow and real target devices.
 5. Obtain owner acceptance of product claims and policies.
 6. Configure `siteUrl`, then run `npm run build -- --public`.

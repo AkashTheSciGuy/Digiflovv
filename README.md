@@ -1,6 +1,6 @@
 # DigiFlovv local product showcase
 
-This release is a responsive product showcase and enquiry website. Payments, checkout, order creation, and customer accounts are intentionally excluded following the owner's updated scope. Nothing is deployed by starting, building, or testing this project.
+This release is a responsive product showcase and enquiry website. Payments, checkout and order creation are excluded. Sign-up and login pages are included as an explicitly labelled frontend preview; real authentication will be connected to Supabase in the next phase. Nothing is deployed by starting, building, or testing this project.
 
 ## Start in VS Code
 
@@ -29,6 +29,10 @@ VS Code's **Terminal > Run Task > DigiFlovv: Start website** runs the same comma
 - Reduced-motion support, accessible dialogs, and site-specific favicon.
 - Static build with page metadata, Product structured data, optional canonical URL and sitemap.
 - Local server with security headers, private-path protection and `/api/health`.
+
+## Account pages
+
+Open `/signup.html` or `/login.html` and use sample details to preview the flow. Valid form input opens an empty dashboard with logout. No accounts are created, credentials verified, or passwords saved or sent. The temporary browser marker is not authentication or a security boundary. See [AUTH-PREVIEW.md](AUTH-PREVIEW.md) for implementation details and the Supabase handoff.
 
 ## Update content
 
@@ -71,6 +75,7 @@ npm run check
 npm test
 npx playwright install chromium firefox webkit
 npm run test:browser
+npm run test:auth
 npm audit
 ```
 
@@ -79,6 +84,7 @@ The browser download is needed once per computer. The development dependencies a
 - `check`: JavaScript syntax, HTML IDs, local assets, internal links, and absence of purchase controls.
 - `test`: enquiry validation, media safety, schedule edge cases, retained checkout regressions, HTTP handling, security headers, and 100 concurrent local requests.
 - `test:browser`: Chromium, Firefox, WebKit; 1440, 768, 390, and 320 pixel widths; automated WCAG accessibility checks, mobile menu, form states, FAQs, native dialogs, simulation, configured gallery/email handoff, and no-JavaScript fallback.
+- `test:auth`: signup/login validation, blank dashboard, logout, expiry, unavailable storage, safe redirects, accessibility and no-JavaScript behavior across three browsers and four widths.
 - Browser screenshots and structured results are saved in ignored `test-results/`.
 
 These tests do not establish compatibility with every real device, assistive technology, or production network. No live messages or payments are sent by tests.

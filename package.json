@@ -10,7 +10,8 @@
     "start": "node scripts/serve.cjs",
     "check": "node scripts/check.cjs",
     "test:browser": "node tests/browser.cjs",
-    "build": "node scripts/build.cjs"
+    "build": "node scripts/build.cjs",
+    "test:auth": "node tests/auth-browser.cjs"
   },
   "engines": {
     "node": ">=20"

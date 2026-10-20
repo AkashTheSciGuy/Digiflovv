@@ -2230,3 +2230,6 @@ dialog p {
 
 .enquiry-form fieldset{border:0;margin:0;padding:0;min-width:0}
 .demo-label,.demo-plant>div:last-child>span:last-child,.demo-stat>span:first-child,.demo-stat small,#watering-status-text{opacity:1}.demo-label{font-size:.875rem}.demo-stat>span:first-child,.demo-stat small{font-size:.875rem}
+
+/* Keep the additional account links usable on tablet-sized headers. */
+@media(max-width:1050px) and (min-width:761px){.header{flex-wrap:wrap}.header nav{order:3;width:100%;justify-content:center;flex-wrap:wrap}}
