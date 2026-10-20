@@ -1,42 +1,42 @@
-# DigiFlovv launch checklist
+# DigiFlovv showcase completion and publication checklist
 
-## Delivered in the first version
+## Current agreed scope
 
-- Product landing page and responsive layout.
-- Product introduction, features, benefits, setup overview, and specifications.
-- Pricing section and purchase controls with a closed-order state.
-- Native FAQs, company introduction, contact fallback, and policy availability notices.
-- Central public configuration for external checkout, price, contact, and policy URLs.
-- Local optimized lifestyle image with attribution.
-- Page metadata, private-review indexing controls, sitemap, and regression checks.
+Local product showcase and enquiries. The owner explicitly excluded payments on October 20, 2026. Checkout, payment verification, orders, customer databases, refunds and payment notifications are therefore outside this release. The database/payment phases in the documents are conditional on handling sales directly.
 
-## Information needed from DigiFlovv
+## Implemented
 
-- Final product name/model, logo, brand approval, and company background.
-- Product photographs, package contents, and installation documentation.
-- Dimensions, weight, materials, power supply, connectivity, app compatibility, watering capacity, and warranty.
-- Price/currency, taxes, delivery areas, shipping cost, and delivery timelines.
-- Approved external payment checkout destination (external checkout has been selected).
-- Support email/phone and approved social accounts.
-- Approved privacy, sales, refund, cancellation, and warranty terms.
-- Production domain, hosting account, and analytics decision.
+- Product sections, responsive layout, mobile navigation and enquiries.
+- Preserved interactive simulation and use-case selector; visible simulation disclaimer.
+- Correct next scheduled day calculation and reduced-motion behavior.
+- Configurable approved photo gallery, image captions and optional video.
+- Configurable product name and specification values.
+- Enquiry validation, local draft preview/copy, and optional email-app handoff.
+- No-JavaScript safety for personal information.
+- Policy notices and configurable links.
+- Consistent npm/VS Code startup and backend compatibility entry point.
+- Metadata, favicon, local static build, optional public canonical/sitemap and structured product data.
+- Automated syntax, unit, HTTP, security, concurrency, browser and accessibility tests.
 
-## Before enabling purchases
+## Content that only DigiFlovv can supply
 
-1. Replace pending product details and review every marketing claim.
-2. Add real hardware imagery and confirm its usage rights.
-3. Publish approved policies and configure their URLs.
-4. Set final price, sales disclosures, checkout URL, and support email.
-5. Test the payment provider sandbox: success, failure, cancellation, duplicate attempts, correct taxes/shipping, and confirmation delivery.
-6. Verify actual keyboard and screen-reader interactions, mobile layouts, supported browsers, and performance on mobile networks.
-7. Verify HTTPS, response security headers, checkout ownership, and production data handling.
-8. Set `ordersOpen` to true only after all launch prerequisites pass.
-9. Publish on the approved domain; update sitemap, canonical URL, search indexing, and verified product structured data.
+- Approved product photographs and optional captioned demonstration video.
+- Final model, dimensions, weight, power, connectivity, app compatibility, capacity, package contents and warranty.
+- Final company/background copy and approved logo if the text wordmark is insufficient.
+- Support email and optional approved business/social contact information.
+- Approved privacy and applicable website terms.
+- Approved production domain, if a public release is later requested.
 
-## Later work
+These values remain pending. The site does not invent them. The gallery remains hidden without photos; enquiry drafts can be copied but cannot open a support email without an address.
 
-Add order management, contact submissions, analytics, customer accounts, or additional products only after those requirements and data-handling responsibilities are agreed. The current code intentionally does not introduce those systems.
+## Before public publication
 
-## Second development step
+1. Complete the content above and update FAQ answers.
+2. Run `npm run check:launch` and review all warnings.
+3. Run `npm run check`, `npm test`, `npm run test:browser` and `npm audit`.
+4. Manually review the final content, videos/captions, keyboard flow and real target devices.
+5. Obtain owner acceptance of product claims and policies.
+6. Configure `siteUrl`, then run `npm run build -- --public`.
+7. Deploy only when explicitly requested; configure HTTPS, caching, logs and backups on the selected host.
 
-Implemented purchase review dialog, persistent mobile Buy Now control, and `npm run check:launch` configuration diagnostics. Automated tests cover both purchase controls, correct payment destination, and closed-order behavior. Live integration awaits the approved payment link, price, disclosures, and policies.
+No publication, outgoing message, payment or external database operation is performed by this development work.

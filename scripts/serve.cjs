@@ -2,12 +2,19 @@ const http = require('node:http');
 const fs = require('node:fs/promises');
 const path = require('node:path');
 const root = path.resolve(__dirname, '../dist');
-const types = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.webp': 'image/webp', '.png': 'image/png', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml', '.ico': 'image/x-icon', '.txt': 'text/plain; charset=utf-8', '.xml': 'application/xml; charset=utf-8' };
+const types = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.webp': 'image/webp', '.png': 'image/png', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml', '.ico': 'image/x-icon', '.txt': 'text/plain; charset=utf-8', '.xml': 'application/xml; charset=utf-8', '.jsonld': 'application/ld+json', '.mp4': 'video/mp4', '.webm': 'video/webm' };
 
 function createServer() {
   return http.createServer(async (request, response) => {
     response.setHeader('X-Content-Type-Options', 'nosniff');
     response.setHeader('Cache-Control', 'no-store');
+    response.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    response.setHeader('X-Frame-Options', 'DENY');
+    response.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' https:; media-src 'self' https:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'");
+    if (request.url === '/api/health' && ['GET', 'HEAD'].includes(request.method)) {
+      response.writeHead(200, { 'Content-Type': 'application/json' });
+      return response.end(request.method === 'HEAD' ? undefined : JSON.stringify({ ok: true, service: 'digiflovv', mode: 'showcase' }));
+    }
     if (!['GET', 'HEAD'].includes(request.method)) {
       response.writeHead(405, { Allow: 'GET, HEAD' });
       return response.end();
@@ -15,7 +22,7 @@ function createServer() {
     try {
       const pathname = decodeURIComponent(new URL(request.url, 'http://localhost').pathname);
       const segments = pathname.split(/[\\/]/);
-      if (segments.some(segment => segment.startsWith('.')) || pathname.includes('\0')) {
+      if (segments.some(segment => segment.startsWith('.')) || /[\x00-\x1f:*?\"<>|]/.test(pathname)) {
         response.writeHead(404); return response.end();
       }
       const filename = path.resolve(root, pathname === '/' ? 'index.html' : '.' + pathname);
@@ -34,7 +41,7 @@ function createServer() {
   });
 }
 
-if (require.main === module) {
+function startServer() {
   const args = process.argv.slice(2);
   const portIndex = args.indexOf('--port');
   const port = Number(portIndex >= 0 ? args[portIndex + 1] : process.env.PORT || 5500);
@@ -53,4 +60,5 @@ if (require.main === module) {
     for (const signal of ['SIGINT', 'SIGTERM']) process.once(signal, () => server.close());
   }
 }
-module.exports = { createServer };
+if (require.main === module) startServer();
+module.exports = { createServer, startServer };

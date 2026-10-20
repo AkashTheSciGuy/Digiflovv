@@ -346,17 +346,17 @@ function initializeStorefront() {
   const policies = {
     privacy: [
       "Privacy information",
-      "This first version has no contact submission form, customer accounts, or analytics scripts. Hosting may process request information. DigiFlovv’s full privacy policy will be available before ordering opens."
+      "The enquiry form prepares a draft in your browser and does not submit or store it. You choose whether to copy it or send it using your email app. There are no customer accounts or analytics scripts. Hosting may process request information. DigiFlovv’s full privacy policy is pending."
     ],
 
     terms: [
       "Terms & conditions",
-      "Sales terms are being finalized. Orders are not currently open. Please review the final pricing, shipping, payment, and warranty terms before purchasing."
+      "This is a product showcase. Orders and payments are not available on this website. Product specifications and availability remain subject to confirmation."
     ],
 
     returns: [
       "Returns & refunds",
-      "The return, refund, and cancellation policies have not yet been finalized. They will be available before ordering opens."
+      "No orders or payments are accepted on this website. Return and refund policies will be published if sales are introduced."
     ]
   };
 
@@ -567,46 +567,9 @@ function initializeProductDemo() {
   }
 
   function updateNextWatering() {
-    const selectedDays =
-      getSelectedDays();
-
-    if (selectedDays.length === 0) {
-      if (nextWatering) {
-        nextWatering.textContent =
-          "Paused";
-      }
-
-      if (nextTime) {
-        nextTime.textContent =
-          "—";
-      }
-
-      return;
-    }
-
-    if (
-      nextWateringIndex >=
-      selectedDays.length
-    ) {
-      nextWateringIndex = 0;
-    }
-
-    const nextDay =
-      selectedDays[
-      nextWateringIndex
-      ];
-
-    if (nextWatering) {
-      nextWatering.textContent =
-        dayNames[nextDay] ||
-        nextDay;
-    }
-
-    if (nextTime) {
-      nextTime.textContent =
-        wateringTime?.value ||
-        "08:00";
-    }
+    const date = window.nextSchedule?.(getSelectedDays(), wateringTime?.value || "08:00");
+    if (nextWatering) nextWatering.textContent = date ? date.toLocaleDateString(undefined, { weekday: "long" }) : "Paused";
+    if (nextTime) nextTime.textContent = date ? date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false }) : "—";
   }
 
 
@@ -721,7 +684,7 @@ function initializeProductDemo() {
 
 
     saveButton.textContent =
-      "Schedule saved ✓";
+      "Demo schedule applied ✓";
 
     saveButton.disabled =
       true;
@@ -970,6 +933,7 @@ function initializeProductDemo() {
    * Initial state.
    */
   updateDuration();
+  updateNextWatering();
 }
 
 /* =========================================================
@@ -1267,7 +1231,7 @@ function initializeUseCaseExplorer() {
     if (demoSection) {
       demoSection.scrollIntoView({
         behavior:
-          "smooth",
+          window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
 
         block:
           "start"
