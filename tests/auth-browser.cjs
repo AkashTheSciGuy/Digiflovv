@@ -71,10 +71,36 @@ async function fill(page, signup) {
           assert.ok(await page.locator('[data-dashboard-view=devices]').isVisible());
           await page.locator('.device-card').click();
           await page.locator('[data-dashboard-view=device]').waitFor({ state: 'visible' });
+          await page.locator('#status-preview').selectOption('watering');
+          assert.equal(await page.locator('#device [data-activity]').innerText(), 'Watering now');
+          await page.locator('#status-preview').selectOption('offline');
+          assert.equal(await page.locator('#device [data-connection]').innerText(), 'Offline');
+          assert.equal(await page.locator('#device [data-activity]').innerText(), 'Watering status unknown');
+          assert.equal(await page.locator('#devices [data-connection]').innerText(), 'Offline');
+          await page.locator('#status-preview').selectOption('idle');
+          assert.equal(await page.locator('#device [data-activity]').innerText(), 'Not watering');
           for (const control of ['interval', 'pump', 'schedule', 'settings']) {
             await page.locator(`.device-control[href="#${control}"]`).click();
             await page.locator(`[data-dashboard-view="${control}"]`).waitFor({ state: 'visible' });
             assert.equal(await page.locator(`[data-dashboard-view="${control}"] h1`).innerText(), control[0].toUpperCase()+control.slice(1));
+            if (control !== 'settings') {
+              const toggle = page.locator(`[data-power="${control}"]`);
+              assert.equal(await toggle.getAttribute('aria-checked'), 'false');
+              await toggle.click();
+              assert.equal(await toggle.getAttribute('aria-checked'), 'true');
+              if (control === 'pump') assert.equal(await page.locator('#devices [data-activity]').innerText(), 'Watering now');
+              await toggle.click();
+              assert.equal(await toggle.getAttribute('aria-checked'), 'false');
+            } else {
+              await page.locator('#setting-hour').fill('25');
+              assert.equal(await page.locator('#setting-hour').evaluate(el => el.checkValidity()), false);
+              await page.locator('#setting-hour').fill('9');
+              await page.locator('#setting-duration').fill('12');
+              await page.locator('#device-settings button').click();
+              assert.match(await page.locator('#settings-result').innerText(), /Duration 12, time 09:00/);
+            }
+            assert.equal((await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa']).analyze()).violations.length, 0);
+            await page.screenshot({path: `test-results/control-${control}-${engine}-${width}.png`, fullPage:true});
             await page.locator(`[data-dashboard-view="${control}"] .dashboard-back`).click();
           }
           assert.equal((await new AxeBuilder({ page }).withTags(['wcag2a','wcag2aa']).analyze()).violations.length, 0);

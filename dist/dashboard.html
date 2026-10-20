@@ -26,33 +26,42 @@
 <p class="dashboard-note">No real devices are connected yet. Explore the example device below.</p>
 <a class="device-card" href="#device" aria-label="Open Living room plants example device">
 <span class="device-icon" aria-hidden="true">✦</span><span class="device-badge">Example device</span>
-<h2>Living room plants</h2><span>DigiFlovv · Plant watering</span><span class="device-open">Open device <span aria-hidden="true">↗</span></span>
+<h2>Living room plants</h2><span>DigiFlovv · Plant watering</span><span class="device-status-row" aria-label="Simulated device status"><span class="device-status-chip" data-connection="online">Online</span><span class="device-status-chip" data-activity="idle">Not watering</span></span><span class="device-open">Open device <span aria-hidden="true">↗</span></span>
 </a></section>
 <section id="device" data-dashboard-view="device" hidden aria-labelledby="heading-device">
 <a class="dashboard-back" href="#devices">← All devices</a><p class="eyebrow">PLANT WATERING</p>
 <h1 id="heading-device" tabindex="-1">Living room plants</h1><span class="device-badge">Example device</span>
-<p class="dashboard-note">Choose a control below. The settings inside each control will be added next.</p>
+<div class="device-live-status" role="status" aria-live="polite"><span class="device-status-row" aria-label="Simulated device status"><span class="device-status-chip" data-connection="online">Online</span><span class="device-status-chip" data-activity="idle">Not watering</span></span><p data-status-detail>Example readings · Device is ready and not watering.</p></div><label class="status-preview">Preview example status<select id="status-preview"><option value="idle">Online · Not watering</option><option value="watering">Online · Watering now</option><option value="offline">Offline · Status unavailable</option></select></label><p class="dashboard-note">These statuses are simulated. No hardware is connected. Open a control to adjust its example values.</p>
 <nav class="device-controls" aria-label="Example device controls"><a class="device-control" href="#interval"><svg viewBox="0 0 36 36" aria-hidden="true"><circle cx="18" cy="18" r="13"/><path d="M18 10v8l6 4"/></svg><strong>Interval</strong><small>Example device <span aria-hidden="true">↗</span></small></a><a class="device-control" href="#pump"><svg viewBox="0 0 36 36" aria-hidden="true"><path d="M18 4C14 11 8 17 8 23a10 10 0 0020 0c0-6-6-12-10-19z"/><path d="M13 23a5 5 0 005 5"/></svg><strong>Pump</strong><small>Example device <span aria-hidden="true">↗</span></small></a><a class="device-control" href="#schedule"><svg viewBox="0 0 36 36" aria-hidden="true"><rect x="5" y="8" width="26" height="24" rx="3"/><path d="M11 4v8m14-8v8M5 17h26m-18 7 3 3 7-7"/></svg><strong>Schedule</strong><small>Example device <span aria-hidden="true">↗</span></small></a><a class="device-control" href="#settings"><svg viewBox="0 0 36 36" aria-hidden="true"><path d="M5 10h26M5 26h26"/><circle cx="12" cy="10" r="4"/><circle cx="24" cy="26" r="4"/></svg><strong>Settings</strong><small>Example device <span aria-hidden="true">↗</span></small></a></nav></section>
 <section id="interval" data-dashboard-view="interval" hidden aria-labelledby="heading-interval">
 <a class="dashboard-back" href="#device">← Device controls</a>
 <p class="eyebrow">EXAMPLE DEVICE · LIVING ROOM PLANTS</p>
 <h1 id="heading-interval" tabindex="-1">Interval</h1>
-<div class="device-pending"><p>The interval controls are coming next.</p><p>This example device is not connected to hardware. No watering commands are sent.</p></div>
+<p class="control-connection" data-control-connection>Online · Example device</p>
+<div class="control-fields"><div class="control-field"><span>Name</span><strong>Interval</strong></div>
+<div class="control-field power-field"><div><span>Power</span><strong id="interval-power-label">Off</strong></div><button type="button" role="switch" aria-checked="false" aria-label="Interval power" data-power="interval" class="power-switch"><span aria-hidden="true"></span></button></div></div>
+<p class="control-help">Example only. No commands are sent to hardware. Changes reset when you refresh.</p>
 </section><section id="pump" data-dashboard-view="pump" hidden aria-labelledby="heading-pump">
 <a class="dashboard-back" href="#device">← Device controls</a>
 <p class="eyebrow">EXAMPLE DEVICE · LIVING ROOM PLANTS</p>
 <h1 id="heading-pump" tabindex="-1">Pump</h1>
-<div class="device-pending"><p>The pump controls are coming next.</p><p>This example device is not connected to hardware. No watering commands are sent.</p></div>
+<p class="control-connection" data-control-connection>Online · Example device</p>
+<div class="control-fields"><div class="control-field"><span>Name</span><strong>Pump</strong></div>
+<div class="control-field power-field"><div><span>Power</span><strong id="pump-power-label">Off</strong></div><button type="button" role="switch" aria-checked="false" aria-label="Pump power" data-power="pump" class="power-switch"><span aria-hidden="true"></span></button></div></div>
+<p class="control-help">Example only. No commands are sent to hardware. Changes reset when you refresh.</p>
 </section><section id="schedule" data-dashboard-view="schedule" hidden aria-labelledby="heading-schedule">
 <a class="dashboard-back" href="#device">← Device controls</a>
 <p class="eyebrow">EXAMPLE DEVICE · LIVING ROOM PLANTS</p>
 <h1 id="heading-schedule" tabindex="-1">Schedule</h1>
-<div class="device-pending"><p>The schedule controls are coming next.</p><p>This example device is not connected to hardware. No watering commands are sent.</p></div>
+<p class="control-connection" data-control-connection>Online · Example device</p>
+<div class="control-fields"><div class="control-field"><span>Name</span><strong>Schedule</strong></div>
+<div class="control-field power-field"><div><span>Power</span><strong id="schedule-power-label">Off</strong></div><button type="button" role="switch" aria-checked="false" aria-label="Schedule power" data-power="schedule" class="power-switch"><span aria-hidden="true"></span></button></div></div>
+<p class="control-help">Example only. No commands are sent to hardware. Changes reset when you refresh.</p>
 </section><section id="settings" data-dashboard-view="settings" hidden aria-labelledby="heading-settings">
 <a class="dashboard-back" href="#device">← Device controls</a>
 <p class="eyebrow">EXAMPLE DEVICE · LIVING ROOM PLANTS</p>
 <h1 id="heading-settings" tabindex="-1">Settings</h1>
-<div class="device-pending"><p>The settings controls are coming next.</p><p>This example device is not connected to hardware. No watering commands are sent.</p></div>
+<p class="control-connection" data-control-connection>Online · Example device</p><form id="device-settings" class="control-fields"><fieldset id="settings-fields"><label class="control-field" for="setting-duration"><span>Duration</span><input id="setting-duration" name="duration" type="number" min="1" max="9007199254740991" step="1" value="5" required></label><label class="control-field" for="setting-hour"><span>Hour</span><input id="setting-hour" name="hour" type="number" min="0" max="23" step="1" value="7" required></label><label class="control-field" for="setting-minute"><span>Minute</span><input id="setting-minute" name="minute" type="number" min="0" max="59" step="1" value="0" required></label><label class="control-field" for="setting-intervalMinutes"><span>IntervalMinutes</span><input id="setting-intervalMinutes" name="intervalMinutes" type="number" min="1" max="9007199254740991" step="1" value="10" required></label><button class="button" type="submit">Save example settings</button></fieldset><p id="settings-result" role="status" aria-live="polite"></p></form><p class="control-help">Example settings only. No automatic watering cycles run. Changes reset when you refresh.</p>
 </section>
 </main>
   </div>

@@ -28,3 +28,31 @@
 @media (prefers-reduced-motion: reduce) {
   .device-card, .device-control { transition: none; transform: none; }
 }
+
+.device-status-row { display: flex; flex-wrap: wrap; gap: 10px; }
+.device-status-chip { display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 20px; background: #edf1e8; color: #23472e; font-size: 14px; font-weight: 600; }
+[data-connection]::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #317440; }
+[data-connection="offline"] { background: #f0ece8; color: #614638; }
+[data-connection="offline"]::before { background: #816555; }
+[data-activity="watering"] { background: #e0f0f6; color: #17546b; }
+[data-activity="offline"] { background: #f0ece8; color: #614638; }
+.device-live-status { margin: 24px 0; }
+.device-live-status p { font-size: 14px; color: #435c4c; }
+.status-preview { display: grid; gap: 10px; font-size: 14px; font-weight: 600; max-width: 360px; }
+.status-preview select { width: 100%; min-height: 46px; padding: 10px; border: 1px solid #aaba9c; border-radius: 10px; background: #fff; color: #183b2e; font: inherit; }
+
+.control-fields { max-width: 680px; display: grid; gap: 24px; margin: 24px 0; }
+.control-fields fieldset { border: 0; padding: 0; margin: 0; display: grid; gap: 24px; min-width: 0; }
+.control-field { padding: 20px 24px; background: #fff; border: 1px solid #c2cebc; border-radius: 18px; display: grid; gap: 8px; box-shadow: 0 3px 8px #183b2e08; }
+.control-field span, .power-field div span { display: block; color: #435c4c; font-size: 16px; }
+.control-field strong { display: block; font-size: 24px; font-weight: 500; }
+.control-field input { width: 100%; box-sizing: border-box; font: inherit; font-size: 24px; color: #183b2e; border: 1px solid #aaba9c; border-radius: 8px; padding: 8px; background: #fff; }
+.power-field { display: flex; justify-content: space-between; align-items: center; gap: 20px; }
+.power-field strong { margin-top: 8px; }
+.power-switch { width: 64px; min-width: 64px; height: 38px; border-radius: 30px; border: 1px solid #789077; padding: 4px; background: #dce4d7; cursor: pointer; }
+.power-switch span { width: 28px; height: 28px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px #0003; transition: transform .15s; }
+.power-switch[aria-checked="true"] { background: #27563a; }
+.power-switch[aria-checked="true"] span { transform: translateX(25px); }
+.power-switch:disabled { opacity: .5; cursor: not-allowed; }
+.control-help, .control-connection { color: #435c4c; max-width: 680px; }
+@media(prefers-reduced-motion: reduce) { .power-switch span { transition: none; } }
