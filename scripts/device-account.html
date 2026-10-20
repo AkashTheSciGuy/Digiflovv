@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><title>DigiFlovv local connection check</title>
+<link rel="stylesheet" href="/styles.css"><link rel="stylesheet" href="/auth.css">
+<script src="/auth-config.js" defer></script><script src="/vendor/supabase.js" defer></script>
+<script src="/auth-validation.js" defer></script><script src="/auth.js" defer></script>
+<script src="/integration-account.js" defer></script>
+</head>
+<body data-auth-page="dashboard">
+<main id="dashboard-shell" hidden>
+<h1>Local device connection check</h1>
+<p>This setup page is available only through the local development server. Device commands are disabled.</p>
+<p id="connection-result" role="status">Checking your signed-in DigiFlovv account…</p>
+<pre id="connection-account"></pre>
+<p>Share the account ID above in this chat to link your RainMaker device to this DigiFlovv login. This ID is not a password or session token.</p>
+<p id="connection-devices"></p>
+<button id="sign-out" type="button" class="button">Log out</button>
+</main>
+</body></html>
