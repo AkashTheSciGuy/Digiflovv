@@ -51,3 +51,7 @@ This update supersedes the account-preview results above.
 - Local server restarted and its Supabase connection policy verified.
 - No real user was created, no confirmation email was sent by tests, and no Netlify deployment was performed. Real inbox delivery and live-account acceptance remain pending. Production redirect and custom SMTP settings require dashboard confirmation.
 - Storefront regression after Supabase integration: all 18 browser scenarios passed.
+
+## Example-device dashboard — October 20, 2026
+
+Scope narrowed by owner to device list and four buttons pending screenshots. Interval, Pump, Schedule and Settings open placeholder views; no inner controls or hardware integration added. Static checks and build passed. All 9 auth/browser scenarios passed with device navigation and back links, across three engines and desktop/mobile widths. Device-page accessibility checks passed; mobile screenshot visually reviewed. No deployment performed.

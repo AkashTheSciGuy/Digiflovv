@@ -1,6 +1,6 @@
 # DigiFlovv local product showcase
 
-This release is a responsive product showcase and enquiry website. Payments, checkout and order creation are excluded. Sign-up and login use Supabase email/password authentication, with email confirmation and an empty dashboard. Nothing is deployed by starting, building, or testing this project.
+This release is a responsive product showcase and enquiry website. Payments, checkout and order creation are excluded. Sign-up and login use Supabase email/password authentication, with email confirmation and an example-device dashboard. Nothing is deployed by starting, building, or testing this project.
 
 ## Start in VS Code
 
@@ -32,7 +32,7 @@ VS Code's **Terminal > Run Task > DigiFlovv: Start website** runs the same comma
 
 ## Account pages
 
-Open `/signup.html` to create an account and confirm your email, then `/login.html` to sign in. Supabase manages sessions; the dashboard stays empty. See [SUPABASE-SETUP.md](SUPABASE-SETUP.md) for redirects, email delivery, security boundaries and live acceptance steps.
+Open `/signup.html` to create an account and confirm your email, then `/login.html` to sign in. Supabase manages sessions; the dashboard shows example-device navigation. See [SUPABASE-SETUP.md](SUPABASE-SETUP.md) for redirects, email delivery, security boundaries and live acceptance steps.
 
 ## Update content
 
@@ -84,7 +84,7 @@ The browser download is needed once per computer. The development dependencies a
 - `check`: JavaScript syntax, HTML IDs, local assets, internal links, and absence of purchase controls.
 - `test`: enquiry validation, media safety, schedule edge cases, retained checkout regressions, HTTP handling, security headers, and 100 concurrent local requests.
 - `test:browser`: Chromium, Firefox, WebKit; 1440, 768, 390, and 320 pixel widths; automated WCAG accessibility checks, mobile menu, form states, FAQs, native dialogs, simulation, configured gallery/email handoff, and no-JavaScript fallback.
-- `test:auth`: signup/login validation, blank dashboard, logout, confirmation callbacks and mocked API behavior across three browsers and three widths.
+- `test:auth`: signup/login validation, example-device navigation, logout, confirmation callbacks and mocked API behavior across three browsers and three widths.
 - Browser screenshots and structured results are saved in ignored `test-results/`.
 
 These tests do not establish compatibility with every real device, assistive technology, or production network. No live messages or payments are sent by tests.
@@ -128,3 +128,7 @@ The server is a local development server, not a production reverse proxy. For a 
 ## Image attribution
 
 Lifestyle photo: Kate Darmody on Unsplash, https://unsplash.com/photos/a-living-room-filled-with-lots-of-plants-next-to-a-window-2YmEjjGIUOs. License: https://unsplash.com/license.
+
+## Example-device dashboard
+
+After login, open Living room plants, then choose Interval, Pump, Schedule or Settings. Each opens a placeholder section with a back link. These are navigation buttons only, as requested while app screenshots are pending. No real hardware status, device records, settings or watering commands are implemented. The home page live demo remains unchanged. Dashboard layout and navigation are in dist/dashboard.html, dist/dashboard.css and dist/dashboard.js.

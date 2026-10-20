@@ -1,7 +1,7 @@
 # DigiFlovv Supabase authentication
 
 The login and signup pages now use the official Supabase JavaScript client.
-The old preview marker cannot open the dashboard. The dashboard remains empty.
+The old preview marker cannot open the dashboard. The dashboard contains an example device with Interval, Pump, Schedule and Settings navigation. Controls inside these sections await the owner’s screenshots; no device commands are sent.
 
 ## Configuration
 
@@ -32,7 +32,7 @@ Use the default confirmation email link (`{{ .ConfirmationURL }}`) unless you de
 - A signup awaiting email confirmation stays on the form and tells the user to check their inbox.
 - Password login verifies credentials with Supabase.
 - Supabase manages persistent access/refresh tokens and refreshes sessions. Password fields are cleared after submissions; application code does not persist or log passwords.
-- The dashboard asks Supabase for the current user before displaying its empty shell.
+- The dashboard asks Supabase for the current user before displaying its device list.
 - Logout ends this browser's session; other devices are unaffected.
 - Errors use safe messages, duplicate submissions are blocked, and controls remain disabled when JavaScript is unavailable.
 - The static dashboard guard is not database authorization. Before adding any customer data, create appropriate Supabase RLS policies and test isolation between users. No customer tables or dashboard content were added.

@@ -13,11 +13,48 @@
   <script src="vendor/supabase.js" defer></script>
   <script src="auth-validation.js" defer></script>
   <script src="auth.js" defer></script>
+  <link rel="stylesheet" href="dashboard.css">
+  <script src="dashboard.js" defer></script>
 </head>
 <body class="dashboard-page" data-auth-page="dashboard">
   <div id="dashboard-shell" hidden>
     <header class="dashboard-header"><a class="brand" href="index.html" aria-label="DigiFlovv home">digi<span>flovv</span><b aria-hidden="true">✳</b></a><div class="dashboard-actions"><span class="preview-session">Your account</span><button type="button" id="sign-out" class="button small">Log out</button></div></header>
-    <main id="main" class="dashboard-empty" aria-label="Dashboard"></main>
+    <main id="main" class="dashboard-content" aria-label="Dashboard">
+<section id="devices" data-dashboard-view="devices" aria-labelledby="heading-devices">
+<p class="eyebrow">YOUR DIGIFLOVV</p><h1 id="heading-devices" tabindex="-1">My devices</h1>
+<p>Your connected devices, all in one place.</p>
+<p class="dashboard-note">No real devices are connected yet. Explore the example device below.</p>
+<a class="device-card" href="#device" aria-label="Open Living room plants example device">
+<span class="device-icon" aria-hidden="true">✦</span><span class="device-badge">Example device</span>
+<h2>Living room plants</h2><span>DigiFlovv · Plant watering</span><span class="device-open">Open device <span aria-hidden="true">↗</span></span>
+</a></section>
+<section id="device" data-dashboard-view="device" hidden aria-labelledby="heading-device">
+<a class="dashboard-back" href="#devices">← All devices</a><p class="eyebrow">PLANT WATERING</p>
+<h1 id="heading-device" tabindex="-1">Living room plants</h1><span class="device-badge">Example device</span>
+<p class="dashboard-note">Choose a control below. The settings inside each control will be added next.</p>
+<nav class="device-controls" aria-label="Example device controls"><a class="device-control" href="#interval"><svg viewBox="0 0 36 36" aria-hidden="true"><circle cx="18" cy="18" r="13"/><path d="M18 10v8l6 4"/></svg><strong>Interval</strong><small>Example device <span aria-hidden="true">↗</span></small></a><a class="device-control" href="#pump"><svg viewBox="0 0 36 36" aria-hidden="true"><path d="M18 4C14 11 8 17 8 23a10 10 0 0020 0c0-6-6-12-10-19z"/><path d="M13 23a5 5 0 005 5"/></svg><strong>Pump</strong><small>Example device <span aria-hidden="true">↗</span></small></a><a class="device-control" href="#schedule"><svg viewBox="0 0 36 36" aria-hidden="true"><rect x="5" y="8" width="26" height="24" rx="3"/><path d="M11 4v8m14-8v8M5 17h26m-18 7 3 3 7-7"/></svg><strong>Schedule</strong><small>Example device <span aria-hidden="true">↗</span></small></a><a class="device-control" href="#settings"><svg viewBox="0 0 36 36" aria-hidden="true"><path d="M5 10h26M5 26h26"/><circle cx="12" cy="10" r="4"/><circle cx="24" cy="26" r="4"/></svg><strong>Settings</strong><small>Example device <span aria-hidden="true">↗</span></small></a></nav></section>
+<section id="interval" data-dashboard-view="interval" hidden aria-labelledby="heading-interval">
+<a class="dashboard-back" href="#device">← Device controls</a>
+<p class="eyebrow">EXAMPLE DEVICE · LIVING ROOM PLANTS</p>
+<h1 id="heading-interval" tabindex="-1">Interval</h1>
+<div class="device-pending"><p>The interval controls are coming next.</p><p>This example device is not connected to hardware. No watering commands are sent.</p></div>
+</section><section id="pump" data-dashboard-view="pump" hidden aria-labelledby="heading-pump">
+<a class="dashboard-back" href="#device">← Device controls</a>
+<p class="eyebrow">EXAMPLE DEVICE · LIVING ROOM PLANTS</p>
+<h1 id="heading-pump" tabindex="-1">Pump</h1>
+<div class="device-pending"><p>The pump controls are coming next.</p><p>This example device is not connected to hardware. No watering commands are sent.</p></div>
+</section><section id="schedule" data-dashboard-view="schedule" hidden aria-labelledby="heading-schedule">
+<a class="dashboard-back" href="#device">← Device controls</a>
+<p class="eyebrow">EXAMPLE DEVICE · LIVING ROOM PLANTS</p>
+<h1 id="heading-schedule" tabindex="-1">Schedule</h1>
+<div class="device-pending"><p>The schedule controls are coming next.</p><p>This example device is not connected to hardware. No watering commands are sent.</p></div>
+</section><section id="settings" data-dashboard-view="settings" hidden aria-labelledby="heading-settings">
+<a class="dashboard-back" href="#device">← Device controls</a>
+<p class="eyebrow">EXAMPLE DEVICE · LIVING ROOM PLANTS</p>
+<h1 id="heading-settings" tabindex="-1">Settings</h1>
+<div class="device-pending"><p>The settings controls are coming next.</p><p>This example device is not connected to hardware. No watering commands are sent.</p></div>
+</section>
+</main>
   </div>
   <noscript><p>Enable JavaScript to open the dashboard. <a href="login.html">Return to login</a>.</p></noscript>
 </body>

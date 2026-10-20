@@ -68,7 +68,18 @@ async function fill(page, signup) {
           await page.locator('#auth-submit').click();
           await page.waitForURL('**/dashboard.html');
           await page.locator('#dashboard-shell').waitFor({ state: 'visible' });
-          assert.equal(await page.locator('main').innerHTML(), '');
+          assert.ok(await page.locator('[data-dashboard-view=devices]').isVisible());
+          await page.locator('.device-card').click();
+          await page.locator('[data-dashboard-view=device]').waitFor({ state: 'visible' });
+          for (const control of ['interval', 'pump', 'schedule', 'settings']) {
+            await page.locator(`.device-control[href="#${control}"]`).click();
+            await page.locator(`[data-dashboard-view="${control}"]`).waitFor({ state: 'visible' });
+            assert.equal(await page.locator(`[data-dashboard-view="${control}"] h1`).innerText(), control[0].toUpperCase()+control.slice(1));
+            await page.locator(`[data-dashboard-view="${control}"] .dashboard-back`).click();
+          }
+          assert.equal((await new AxeBuilder({ page }).withTags(['wcag2a','wcag2aa']).analyze()).violations.length, 0);
+          await page.screenshot({path: `test-results/dashboard-${engine}-${width}.png`, fullPage:true});
+          await page.locator('[data-dashboard-view=device] .dashboard-back').click();
           await page.reload();
           await page.locator('#dashboard-shell').waitFor({ state: 'visible' });
           assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth+1));
@@ -84,11 +95,11 @@ async function fill(page, signup) {
           await page.goto(base + '/login.html?code=mock-confirmation');
           await page.waitForURL('**/dashboard.html');
           await page.locator('#dashboard-shell').waitFor({ state: 'visible' });
-          assert.equal(await page.locator('main').innerHTML(), '');
+          assert.ok(await page.locator('[data-dashboard-view=devices]').isVisible());
           assert.deepEqual(errors, []);
           await context.close();
           scenarios++;
-          console.log(`${engine} ${width}: confirmation pending, invalid credentials, login, empty dashboard, reload, logout passed`);
+          console.log(`${engine} ${width}: confirmation pending, invalid credentials, login, device navigation, reload, logout passed`);
         }
       } finally { await browser.close(); }
     }

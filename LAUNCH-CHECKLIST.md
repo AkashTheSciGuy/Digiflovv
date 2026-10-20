@@ -4,7 +4,7 @@
 
 Local product showcase and enquiries. The owner explicitly excluded payments on October 20, 2026. Checkout, payment verification, orders, customer databases, refunds and payment notifications are therefore outside this release. The database/payment phases in the documents are conditional on handling sales directly.
 
-Account pages now use Supabase authentication. Verify production redirect URLs, custom SMTP and real inbox signup/login before public account launch. The dashboard remains empty. See SUPABASE-SETUP.md.
+Account pages now use Supabase authentication. Verify production redirect URLs, custom SMTP and real inbox signup/login before public account launch. The dashboard contains an example device with Interval, Pump, Schedule and Settings navigation. Controls inside these sections await the owner’s screenshots; no device commands are sent. See SUPABASE-SETUP.md.
 
 ## Implemented
 
