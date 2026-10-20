@@ -56,3 +56,10 @@
 .power-switch:disabled { opacity: .5; cursor: not-allowed; }
 .control-help, .control-connection { color: #435c4c; max-width: 680px; }
 @media(prefers-reduced-motion: reduce) { .power-switch span { transition: none; } }
+
+.control-card { padding: 0; overflow: hidden; gap: 0; }
+.control-card-link { display: flex; flex-direction: column; gap: 14px; padding: 28px; width: 100%; color: inherit; text-decoration: none; box-sizing: border-box; }
+.card-power { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding: 16px 28px; border-top: 1px solid #dce3d5; width: 100%; box-sizing: border-box; font-size: 13px; color: #435c4c; }
+@media(max-width:480px) { .control-card-link { padding: 20px 16px; } .card-power { padding: 16px; } }
+
+.power-switch > span { display: block; }
