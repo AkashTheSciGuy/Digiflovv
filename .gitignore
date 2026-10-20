@@ -9,3 +9,6 @@ test-results/
 release/
 
 .release-*/
+
+# Local Netlify folder
+.netlify

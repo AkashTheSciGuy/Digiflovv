@@ -75,11 +75,11 @@ async function fill(page, signup) {
           assert.equal(await page.locator('#device [data-connection]').innerText(), 'Offline');
           assert.equal(await page.locator('#device [data-activity]').innerText(), 'Watering status unknown');
           for (const toggle of await page.locator('#device [data-power]').all()) assert.ok(await toggle.isDisabled());
-          assert.equal(await page.locator('#device [data-power]').count(), 3);
-          for (const control of ['interval', 'pump', 'schedule', 'settings']) {
+          assert.equal(await page.locator('#device [data-power]').count(), 4);
+          for (const control of ['interval', 'moisture', 'pump', 'schedule', 'settings']) {
             await page.locator(`.device-controls a[href="#${control}"]`).click();
             await page.locator(`[data-dashboard-view="${control}"]`).waitFor({ state: 'visible' });
-            assert.equal(await page.locator(`[data-dashboard-view="${control}"] h1`).innerText(), control[0].toUpperCase()+control.slice(1));
+            assert.equal(await page.locator(`[data-dashboard-view="${control}"] h1`).innerText(), control === 'moisture' ? 'Moisture Control' : control[0].toUpperCase()+control.slice(1));
             if (control !== 'settings') {
               assert.ok(await page.locator(`#${control} [data-power]`).isDisabled());
               assert.equal(await page.locator(`#${control}-power-label`).innerText(), 'Unknown');

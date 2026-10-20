@@ -28,7 +28,7 @@ test('device bridge rejects missing auth, invalid sessions and write methods', a
   });
 });
 
-test('explicit ownership filters other devices and strips credentials and moisture', async () => {
+test('explicit ownership filters other devices and strips credentials', async () => {
   await withBridge({ verifyUser: async () => ({ id: owner }), readNodes: async () => ({ node_details: [node, { ...node, id: 'OTHER' }] }), links: { [owner]: ['NODE1'] } }, async base => {
     const response = await fetch(base + '/api/devices', { headers });
     const body = await response.json();
@@ -53,7 +53,7 @@ test('another authenticated user receives no devices and cannot choose a node by
 
 test('offline and malformed parameter values remain unknown', () => {
   const offline = sanitizeNode({ ...node, status: {} }, 'now');
-  assert.deepEqual(offline.power, { pump: null, schedule: null, interval: null });
+  assert.deepEqual(offline.power, { pump: null, schedule: null, interval: null, moisture: null });
   assert.equal(offline.settings.duration, null);
   assert.equal(sanitizeNode({ ...node, params: { Pump: { Power: 'true' } } }, 'now').power.pump, null);
 });
@@ -91,5 +91,32 @@ test('invalid ownership configuration fails closed', () => {
 test('account lookup reveals only the verified caller identity', async () => {
   await withBridge({ verifyUser: async () => ({ id: owner, email: 'private@example.com' }), readNodes: async () => {}, links: {} }, async base => {
     assert.deepEqual(await (await fetch(base + '/api/device-account', { headers })).json(), { userId: owner, linked: false });
+  });
+});
+
+test('command HTTP route enforces ownership, JSON size, expiry and duplicate protection', async () => {
+  const { revision } = require('../scripts/device-commands.cjs');
+  const live = { id: 'NODE1', status: { connectivity: { connected: true } }, params: { Settings: { Minute: 0 } }, config: { devices: [{ name: 'Settings', params: [{ name: 'Minute', properties: ['write'] }] }] } };
+  let writes = 0;
+  await withBridge({
+    verifyUser: async auth => ({ id: auth.endsWith('y'.repeat(24)) ? other : owner }),
+    readNodes: async () => ({ node_details: [live] }),
+    writeNode: async (id, payload) => { writes++; live.params.Settings.Minute = payload.Settings.Minute; },
+    links: { [owner]: ['NODE1'] }
+  }, async base => {
+    const url = base + '/api/devices/NODE1/commands';
+    const commandHeaders = { ...headers, 'Content-Type': 'application/json' };
+    const body = { requestId: 'http_request_123456789', expectedRevision: revision(live), expiresAt: Date.now() + 30000, target: 'Settings', values: { Minute: 1 } };
+    const post = (value, customHeaders = commandHeaders) => fetch(url, { method: 'POST', headers: customHeaders, body: typeof value === 'string' ? value : JSON.stringify(value) });
+    assert.equal((await post(body, { ...commandHeaders, Authorization: `Bearer ${'y'.repeat(24)}` })).status, 403);
+    assert.equal((await post(body, { ...commandHeaders, Origin: 'https://untrusted.example' })).status, 403);
+    assert.equal((await post(body, headers)).status, 415);
+    assert.equal((await post('{bad json')).status, 400);
+    assert.equal((await post({ ...body, expiresAt: 1 })).status, 400);
+    assert.equal((await post('x'.repeat(5000))).status, 413);
+    assert.equal(writes, 0);
+    assert.equal((await (await post(body)).json()).state, 'reported');
+    assert.equal((await (await post(body)).json()).state, 'reported');
+    assert.equal(writes, 1);
   });
 });

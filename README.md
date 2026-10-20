@@ -134,3 +134,11 @@ Lifestyle photo: Kate Darmody on Unsplash, https://unsplash.com/photos/a-living-
 After login, open Living room plants, then choose Interval, Pump, Schedule or Settings. Each opens a placeholder section with a back link. These are navigation buttons only, as requested while app screenshots are pending. No real hardware status, device records, settings or watering commands are implemented. The home page live demo remains unchanged. Dashboard layout and navigation are in dist/dashboard.html, dist/dashboard.css and dist/dashboard.js.
 
 Device status now defaults to Offline because no device transport is connected. There is no status selector or simulated power behavior. Interval, Pump and Schedule cards have disabled power switches beside separate navigation links. Detail switches and settings are also disabled. Watering and power state are unknown while offline. Real connection/status reporting remains a future hardware integration.
+
+## RainMaker integration (local development)
+
+An optional authenticated local bridge now supports reported device state, multiple linked devices, Pump/Schedule/Interval commands and Settings writes. See [DEVICE-INTEGRATION.md](DEVICE-INTEGRATION.md) for private session setup, explicit account linking, command validation, live acceptance results and production limitations. Static hosting without that bridge retains the offline example. The Netlify site is unchanged. Moisture Control is included, using the existing firmware switch.
+
+## Customer device connections
+The hosted dashboard now includes Connect a device, per-device Disconnect and Disconnect RainMaker. The server verifies RainMaker email sign-in codes and stores providercredentials encrypted; each DigiFlovv user selects their own authorized devices. Disconnecting the website keeps the device in the phone app and does not stop firmware watering/schedules. The initialmanualassociation is migrated without losing access. See DEVICE-LINKING.md for setup, APIs, security and acceptance status.
+

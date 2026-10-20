@@ -26,6 +26,29 @@
   if (mode === "dashboard") {
     const shell = document.getElementById("dashboard-shell");
     const logout = document.getElementById("sign-out");
+    async function deviceRequest(path, options = {}) {
+        const { data, error } = await client.auth.getSession();
+        if (error || !data.session) return { ok: false, status: 401 };
+        const response = await fetch(path, {
+          ...options,
+          headers: { Authorization: `Bearer ${data.session.access_token}`, ...options.headers },
+          cache: "no-store", signal: AbortSignal.timeout(options.method ? 60000 : 25000)
+        });
+        return { ok: response.ok, status: response.status, data: response.status === 404 ? null : await response.json() };
+    }
+    const devicePost = (path, body) => deviceRequest(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    window.DigiFlovvDeviceApi = Object.freeze({
+      links: () => deviceRequest("/api/device-links"),
+      startRainMakerLogin: email => devicePost("/api/rainmaker/login/start", { email }),
+      verifyRainMakerLogin: code => devicePost("/api/rainmaker/login/verify", { code }),
+      connectDevice: id => devicePost("/api/device-links/connect", { id }),
+      disconnectDevice: id => devicePost("/api/device-links/disconnect", { id }),
+      disconnectRainMaker: () => devicePost("/api/rainmaker/disconnect", {}),
+      list: (fresh = false) => deviceRequest(fresh ? "/api/devices?fresh=1" : "/api/devices"),
+      command: (id, body) => deviceRequest(`/api/devices/${encodeURIComponent(id)}/commands`, {
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body)
+      })
+    });
     let checking = false;
     async function checkSession() {
       if (checking) return;
@@ -34,10 +57,12 @@
         const { data, error } = await client.auth.getUser();
         if (error || !data.user) { shell.hidden = true; navigate("login.html"); return; }
         shell.hidden = false;
+        window.dispatchEvent(new Event("digiflovv:authenticated"));
       } catch { shell.hidden = true; navigate("login.html"); }
       finally { checking = false; }
     }
     client.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_OUT") window.dispatchEvent(new Event("digiflovv:signed-out"));
       if (event === "SIGNED_OUT" && !logout.disabled) { shell.hidden = true; navigate("login.html"); }
     });
     logout.addEventListener("click", async () => {

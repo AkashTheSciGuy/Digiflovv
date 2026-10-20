@@ -63,3 +63,9 @@
 @media(max-width:480px) { .control-card-link { padding: 20px 16px; } .card-power { padding: 16px; } }
 
 .power-switch > span { display: block; }
+.live-device-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 24px; }
+
+.power-switch[data-pending] { opacity: 1; background: #f3dfac; border-color: #917331; }
+.power-switch[data-pending="on"] > span { transform: translateX(25px); }
+.power-switch[data-pending="off"] > span { transform: translateX(0); }
+.power-switch[data-pending] > span { background: #fff9e9; }

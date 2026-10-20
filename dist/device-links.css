@@ -1,0 +1,22 @@
+.link-dialog { width: min(640px, calc(100% - 32px)); max-height: calc(100dvh - 40px); box-sizing: border-box; overflow-y: auto; border: 1px solid #c9d5c3; border-radius: 24px; padding: 28px; color: #183b2e; background: #f8faf4; box-shadow: 0 24px 80px #102c2638; }
+.link-dialog::backdrop { background: #102c2670; }
+.link-dialog-heading { display: flex; gap: 16px; justify-content: space-between; align-items: flex-start; }
+.link-dialog h2 { font-size: clamp(24px, 4vw, 32px); line-height: 1.15; margin: 0; }
+.link-dialog h3 { font-size: 18px; margin: 20px 0 12px; }
+.link-dialog p { line-height: 1.6; color: #435c4c; }
+.link-dialog .link-secondary { background: transparent; color: #183b2e; border: 1px solid #aebda6; }
+.link-dialog .link-secondary:hover { background: #e7eedf; }
+.link-device-row { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 16px 0; border-bottom: 1px solid #d6dfce; }
+.link-device-row div { min-width: 0; overflow-wrap: anywhere; }
+.link-device-row strong, .link-device-row small { display: block; }
+.link-device-row small { color: #526750; margin-top: 5px; }
+.link-dialog form { display: grid; gap: 10px; margin: 16px 0; }
+.link-dialog input { width: 100%; min-height: 46px; box-sizing: border-box; border: 1px solid #9fae99; border-radius: 9px; padding: 10px 12px; background: white; color: #183b2e; font: inherit; }
+.link-dialog input:focus-visible, .link-dialog button:focus-visible { outline: 3px solid #668452; outline-offset: 3px; }
+.link-dialog form .button { justify-self: start; }
+.link-sign-in, .link-dialog-footer { border-top: 1px solid #d6dfce; margin-top: 24px; padding-top: 8px; }
+.link-dialog-footer .button { margin-top: 16px; }
+.link-confirmation { padding: 4px 16px 16px; border: 1px solid #afbd9f; border-radius: 12px; margin-top: 20px; background: #eef3e7; }
+.link-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.device-connection-actions { display: flex; flex-wrap: wrap; gap: 12px; margin: 20px 0; }
+@media (max-width: 480px) { .link-dialog { padding: 20px; } .link-dialog-heading .button { padding: 9px 13px; } .link-device-row { align-items: flex-start; flex-wrap: wrap; } }

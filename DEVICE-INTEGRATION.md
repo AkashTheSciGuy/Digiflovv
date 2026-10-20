@@ -1,51 +1,109 @@
-# Local RainMaker integration: stage 1
+# DigiFlovv RainMaker local integration
 
-This stage adds **read-only, authenticated local API access**. It does not enable dashboard controls, upload firmware, provision devices, or deploy anything. Moisture Control is excluded at the owner's request.
+## Current scope and verified behavior
 
-## Verified live access
+The local website connects the existing Supabase login to explicitly authorized RainMaker nodes. Users can view reported status/settings, operate Pump/Schedule/Interval/Moisture Control, and save Settings. Multiple mapped nodes appear as separate selectable cards. Device renaming, OTA controls, and factory reset controls are excluded from the website. Moisture Control mirrors the existing firmware switch; its sensor logic is unchanged. Existing firmware and mobile app remain unchanged.
 
-On October 20, 2026, Google browser sign-in through Espressif's CLI succeeded. A subsequent live cloud read reported Plant Watering online with Pump, Schedule and Interval off; Duration=5, Hour=7, Minute=0, IntervalMinutes=10. The cloud also advertised Moisture Control, which this integration deliberately excludes. Duration is minutes in the inspected source; the running binary has not been proven identical to that source.
+Live acceptance on October 20, 2026:
+- Google RainMaker sign-in succeeded through the official CLI; the account has primary access to Plant Watering.
+- The owner changed Minute from 0 to 1 in the phone app and confirmed the website updated and showed Online.
+- A website settings submission changed Minute from 1 to 2. A separate authenticated RainMaker read confirmed Minute=2 and Pump/Schedule/Interval=false.
+- A website submission restored Minute=0. A separate cloud read and the owner confirmed it.
+- A supervised website Pump ON/OFF test produced matching cloud reports. The owner confirmed the physical pump started and stopped and the phone app showed OFF. The final cloud read reported Pump=false and Minute=0.
 
-## Start locally
+Schedule/Interval timing and the automatic duration cutoff have not been physically tested in this integration session. Cloud reports are not a sensor measurement of relay operation.
 
-Install the official `esp-rainmaker-cli` in a separate Python environment and sign in using `esp-rainmaker-cli login --profile global`. Keep `RM_USER_CONFIG_DIR` outside `dist/` and `release/`, protected to the current operating-system user. Existing session files prepared for this task already meet that condition.
+## Architecture and trust boundary
 
-Create a private JSON ownership file outside public directories. Start with `{}`. After the owner verifies their DigiFlovv login through the connection check page, configure an explicit mapping:
+Browser -> loopback Node server -> server-side Supabase token verification -> explicit per-user node allowlist -> trusted RainMaker Python adapters -> RainMaker cloud -> existing ESP firmware.
+
+The website keeps its existing Supabase session. RainMaker tokens never enter frontend files, API responses, browser storage, or source control. No Supabase service-role key is needed locally. The official CLI session is in a separate private directory restricted to the current Windows user. Production credentials will require encrypted server-side storage and a separately verified supported authorization flow.
+
+The local bridge is optional. Without its configuration, the server and static deployment preserve the original offline placeholder. The local setup page is served from scripts only when the bridge is configured; it is excluded from the static release. The existing Netlify site has not been deployed or modified.
+
+## Start and link locally
+
+Use Node 20+ and an isolated Python environment containing official esp-rainmaker-cli. Set RM_USER_CONFIG_DIR to a private directory outside dist/release and sign in with esp-rainmaker-cli login --profile global. Do not commit the environment, session files or ownership file.
+
+Create a private JSON mapping from verified Supabase user UUIDs to authorized RainMaker node IDs. An empty object grants no device access. Confirm the UUID through the local integration-account.html setup page before adding a link. The owner of this task has completed this process; the private mapping is already configured. No automatic first-user claiming or email matching occurs.
+
+Run scripts/start-device-preview.ps1 with:
+- RainMakerPython: absolute path to the isolated Python executable.
+- RainMakerSession: absolute path to the private RainMaker session directory.
+- DeviceLinks: absolute path to the private ownership JSON.
+- Port: optional, defaults to 5501.
+- EnableCommands: optional switch; without it, API and dashboard are read-only.
+
+Sign into http://127.0.0.1:5501/login.html, then open dashboard.html. The server binds only to 127.0.0.1. Restart after changing ownership mappings; they are validated and loaded at startup. Clearing/revoking the RainMaker association also removes access on the next fresh cloud read. Public auth configuration is loaded from the existing auth-config.js without printing it.
+
+## APIs
+
+All API routes require a Bearer Supabase access token, verified against the fixed project's /auth/v1/user endpoint. Foreign Origin and non-loopback Host headers are rejected. No CORS permissions or cookie authentication are used. Responses disable caching; upstream diagnostics and credentials are omitted.
+
+GET /api/device-account returns only the verified caller's userId and linked flag.
+
+GET /api/devices returns devices still accessible in both the explicit local mapping and the RainMaker account. Each contains id, name, online, observedAt, source, writable, revision, commandExpiresAt, power and settings. Offline/missing parameter values are null. observedAt records the cloud-read time, not a firmware acknowledgment. The dashboard polls every five seconds while visible, or every second while awaiting a report. Successful reads are cached for up to five seconds and concurrent reads share a request. Cloud failures clear displayed state rather than retaining an old Online/On label.
+
+POST /api/devices/{nodeId}/commands accepts application/json only, with at most 4096 bytes:
 
 ```json
 {
-  "SUPABASE-USER-UUID": ["RAINMAKER-NODE-ID"]
+  "requestId": "unique-request-identifier",
+  "expectedRevision": "revision-from-the-device-read",
+  "expiresAt": 1800000000000,
+  "target": "Settings",
+  "values": { "Minute": 1 }
 }
 ```
 
-Use actual verified identifiers; placeholders will fail startup validation. Each Supabase UUID may have multiple node IDs. Restart the local server after changing links. Both the explicit mapping and access by the signed-in RainMaker account are required. A missing/revoked RainMaker association yields no device. No email matching or first-user auto-claiming occurs.
+requestId is 16-80 letters, digits, hyphens or underscores. expectedRevision is the 64-character revision returned by the latest device read. expiresAt must be the returned commandExpiresAt (server-issued 30-second deadline), avoiding reliance on browser clock accuracy. This example timestamp is illustrative and is not a usable command.
 
-Run `scripts/start-device-preview.ps1` with `-RainMakerPython`, `-RainMakerSession`, and `-DeviceLinks` pointing to the isolated Python executable, private session directory and ownership JSON file. The default port is 5501. Node 20+ must be available. The script loads only the existing public Supabase key, without printing it.
+Allowed targets and values:
+- Pump, Schedule, Interval, Moisture Control: exactly one Power boolean.
+- Settings: one or more of Duration, Hour, Minute, IntervalMinutes, integer values only.
+- Hour: 0-23; Minute: 0-59.
+- Duration and IntervalMinutes: 1-71582 minutes. The upper bound prevents overflow of the inspected firmware's 32-bit millisecond multiplication. It is a technical bound, not a recommended watering duration.
 
-Sign into DigiFlovv at the local origin, then open `/integration-account.html`. If authentication redirects to login, reopen the connection-check URL after signing in. This operator setup page shows only the caller's verified Supabase UUID and linked device connectivity. It is served from `scripts/`, only when the bridge is configured, and is excluded from the static release.
+The backend verifies device-declared writable parameters, fresh cloud access/online state, expected revision and expiry before sending. Settings writes require the pump and all configured automation modes to report OFF. Enabling Schedule/Interval requires other configured automation modes to be OFF, including Moisture Control. It rejects conflicts instead of silently disabling another mode. Manual Pump remains independent. An explicit Pump OFF may bypass a revision conflict.
 
-## API and security
+Only one command is processed per node at once; concurrent distinct commands receive 409 rather than being queued for later actuation. Repeated request IDs with the same content reuse the original result for 120 seconds. Reusing a key with different content receives 409. The local in-memory request cache is capped at 512 records and is lost on server restart. Unchanged values are not resent, preventing an already-ON request from restarting the firmware's duration timer. Failed/ambiguous writes are never automatically retried.
 
-Both endpoints accept GET only, require `Authorization: Bearer <Supabase access token>`, verify the caller against the fixed project's `/auth/v1/user`, disable response caching, and return no RainMaker credentials. No service-role key is required. Requests with foreign Origin or non-loopback Host headers are rejected. The server binds to 127.0.0.1.
+Command response states:
+- already_reported: requested values matched the fresh preflight report; no write sent.
+- reported: values matched a fresh cloud report after the write.
+- sent: cloud accepted the command, but a matching report was not yet seen.
+- unconfirmed: transport or read-back failed after a write attempt; delivery is uncertain.
 
-- `GET /api/device-account`: caller's verified `userId` and whether an explicit mapping exists.
-- `GET /api/devices`: only mapped devices still accessible to the RainMaker session. Returns `id`, `name`, `online`, `observedAt`, `source`, `writable:false`, `power`, `settings`. Offline and missing values are null. Observation time records the cloud read, not a firmware acknowledgment or telemetry timestamp.
-- Errors: 401 missing/invalid login; 403 disallowed origin/host; 405 attempted write; 503 unavailable authentication or cloud. Error bodies omit upstream diagnostics.
+The UI retains reported switch values while sending and reconciles later reports. It does not turn a switch ON just because a command was sent. A matching cloud report does not establish an exact command-correlated firmware acknowledgment. App changes can race the backend's read/write steps; RainMaker parameter writes do not provide an atomic compare-and-set in this implementation.
 
-The private helper reads cloud metadata through the official library. It is invoked without a shell, with a 15-second process timeout and bounded output. Reads share one in-flight request and cache a successful snapshot for at most five seconds. The helper suppresses library diagnostic output and sends no commands.
+Errors: 400 malformed/unsupported/expired command; 401 invalid login; 403 unauthorized device/origin/host; 405 unavailable method or disabled commands; 409 offline/state/automation/concurrent-command conflict; 413 oversized body; 415 non-JSON; 429 request-cache capacity; 503 account/cloud read unavailable. Error responses omit secrets.
 
-Without `DIGIFLOVV_DEVICE_LINKS`, the existing development server behaves as before. Invalid configured bridge settings fail startup rather than silently granting access. Keep session data, private ownership files and Python environments out of source control and static builds.
+## Verification
 
-## Verification and limits
+- npm run check: syntax, content references and static checks.
+- npm test: 37 unit/integration tests, including ownership isolation, malformed requests, expiry, deduplication, ambiguous delivery, offline/stale state, automation conflicts, read-only parameters and concurrent requests.
+- npm run test:auth: nine mocked Supabase browser scenarios across Chromium, Firefox and WebKit and three widths.
+- node tests/dashboard-live-browser.cjs: three-browser mocked API tests covering multiple devices, offline/failure/unlink, dirty settings preservation, saves, and delayed/non-optimistic power reports.
+- npm run build: static release generation; does not deploy or include the trusted local server/session.
 
-`node --test tests/device-bridge.test.cjs` tests missing/invalid authentication, per-user isolation, allowlisting, offline unknown state, credential stripping, cross-origin denial, cloud failure, 100 concurrent requests, invalid ownership and identity lookup. These use mocked account/cloud responses and do not establish hardware actuation or production account linking. Separate live reads have confirmed cloud access.
+Mocked tests do not prove physical behavior. The separate live acceptance results above describe exactly what was observed.
 
-## Remaining stages
+## Remaining production work
 
-1. Bind the verified DigiFlovv user UUID to the verified RainMaker node and test authorized reads with a real Supabase session, plus a second unauthorized user.
-2. Connect the existing dashboard to these reads with multi-device selection and stale/offline handling.
-3. Add validated commands, idempotency, conflict handling and reconciliation against device reports. Firmware acknowledgment support must be tested; HTTP success is not confirmation that a relay changed. Review firmware validation/automation conflicts before writes.
-4. Establish supported production RainMaker web authorization/client registration and encrypted backend credential storage. The official desktop CLI's hosted redirect/localhost flow is not a completed production account-linking flow.
-5. Select/deploy a trusted backend and enforce persistent ownership/RLS as appropriate. Static Netlify hosting alone does not execute this local bridge. Public deployment requires separate user authorization.
+The public Netlify site is static. Its browser code cannot use this computer's loopback bridge or CLI credentials. Production requires a hosted trusted backend, persistent authorization, encrypted RainMaker credential storage/rotation, durable command tracking, per-user linking and real second-user acceptance. Establish supported RainMaker web-client registration/account linking; the official desktop CLI's Espressif redirect/localhost callback is not a production website authorization flow.
 
-No new cloud services, payments or public deployment are part of this stage.
+The firmware's existing app-side automation conflicts, missing moisture controller and physical-reset behavior have not been changed. Global mutual exclusion and strong command acknowledgment/order guarantees require firmware/protocol work and hardware acceptance; backend checks cannot enforce them against simultaneous phone-app changes.
+
+Public deployment requires the owner's separate authorization. No paid service or production cloud changes were introduced.
+
+## Latency and Moisture Control update — October 20, 2026
+
+Moisture Control is now included on the device card grid and its own Name/Power page, using the exact RainMaker target Moisture Control. GET responses include power.moisture and capabilities.moisture. Devices without that capability hide its card and keep its switch disabled. Moisture enable commands use the same ownership, validation, expiry, deduplication and automation-conflict checks as other modes. Existing firmware sensor logic remains unchanged and has not been repaired or validated by this UI update.
+
+The backend now runs one private persistent Python worker and reuses a certificate-verified requests.Session HTTP connection. It refreshes credentials through the official RainMaker configuration library. It bounds worker requests/output, times out failures, and recovers on a later explicit request without automatically retrying writes. The worker shuts down with the local server. The standalone read adapter is retained for independent diagnostics; live requests use the persistent worker.
+
+Command read-back is sanitized and returned in the command response, avoiding a redundant frontend cloud read. Ambiguous/unconfirmed requests poll fresh reports every second; idle polling is five seconds. Buttons show an immediate amber pending position and Turning on/off label while aria-checked still reflects the last confirmed report. No firmware change, direct LAN control or cloud-latency guarantee is implied.
+
+Three old standalone read timings were 681/707/1209 ms. Persistent-worker timings were 1163 ms cold and 308/784/337 ms warm. These are read timings in one network sample, not physical actuation measurements. A real website Minute=1 command and restore to 0 succeeded through the new worker. Pump/Schedule/Interval/Moisture Control ended OFF. No pump or moisture ON command was issued in this update.
+
+Verification now includes 43 unit/integration tests, worker lifecycle/failure tests, moisture/pending-state tests in Chromium/Firefox/WebKit, and the existing nine authentication browser scenarios. The Netlify site remains unchanged.

@@ -15,6 +15,9 @@
   <script src="auth.js" defer></script>
   <link rel="stylesheet" href="dashboard.css">
   <script src="dashboard.js" defer></script>
+  <script src="dashboard-live.js" defer></script>
+  <script src="device-links.js" defer></script>
+  <link rel="stylesheet" href="device-links.css">
 </head>
 <body class="dashboard-page" data-auth-page="dashboard">
   <div id="dashboard-shell" hidden>
@@ -23,6 +26,7 @@
 <section id="devices" data-dashboard-view="devices" aria-labelledby="heading-devices">
 <p class="eyebrow">YOUR DIGIFLOVV</p><h1 id="heading-devices" tabindex="-1">My devices</h1>
 <p>Your connected devices, all in one place.</p>
+<div class="device-connection-actions"><button type="button" id="connect-device" class="button small">Connect a device</button></div>
 <p class="dashboard-note">No real devices are connected yet. Explore the example device below.</p>
 <a class="device-card" href="#device" aria-label="Open Living room plants example device">
 <span class="device-icon" aria-hidden="true">✦</span><span class="device-badge">Example device</span>
@@ -30,18 +34,28 @@
 </a></section>
 <section id="device" data-dashboard-view="device" hidden aria-labelledby="heading-device">
 <a class="dashboard-back" href="#devices">← All devices</a><p class="eyebrow">PLANT WATERING</p>
-<h1 id="heading-device" tabindex="-1">Living room plants</h1><span class="device-badge">Example device</span>
+<h1 id="heading-device" tabindex="-1">Living room plants</h1><div class="device-connection-actions"><button type="button" id="disconnect-device" class="button small" disabled>Disconnect device</button></div><span class="device-badge">Example device</span>
 <div class="device-live-status" role="status" aria-live="polite"><span class="device-status-row" aria-label="Device status"><span class="device-status-chip" data-connection="offline">Offline</span><span class="device-status-chip" data-activity="offline">Watering status unknown</span></span><p data-status-detail>Device not connected. Current watering activity cannot be confirmed.</p></div><p class="dashboard-note">Device offline. Power controls are unavailable until a device is connected.</p>
-<p id="offline-control-help" class="control-help">Offline — switches are disabled. Current power state is unknown.</p><nav class="device-controls" aria-label="Example device controls"><div class="device-control control-card"><a class="control-card-link" href="#interval"><svg viewBox="0 0 36 36" aria-hidden="true"><circle cx="18" cy="18" r="13"/><path d="M18 10v8l6 4"/></svg><strong>Interval</strong><small>Example device <span aria-hidden="true">↗</span></small></a><div class="card-power"><span>Power unavailable</span><button type="button" role="switch" aria-checked="false" aria-label="Interval power" aria-describedby="offline-control-help" data-power="interval" class="power-switch" disabled><span aria-hidden="true"></span></button></div></div><div class="device-control control-card"><a class="control-card-link" href="#pump"><svg viewBox="0 0 36 36" aria-hidden="true"><path d="M18 4C14 11 8 17 8 23a10 10 0 0020 0c0-6-6-12-10-19z"/><path d="M13 23a5 5 0 005 5"/></svg><strong>Pump</strong><small>Example device <span aria-hidden="true">↗</span></small></a><div class="card-power"><span>Power unavailable</span><button type="button" role="switch" aria-checked="false" aria-label="Pump power" aria-describedby="offline-control-help" data-power="pump" class="power-switch" disabled><span aria-hidden="true"></span></button></div></div><div class="device-control control-card"><a class="control-card-link" href="#schedule"><svg viewBox="0 0 36 36" aria-hidden="true"><rect x="5" y="8" width="26" height="24" rx="3"/><path d="M11 4v8m14-8v8M5 17h26m-18 7 3 3 7-7"/></svg><strong>Schedule</strong><small>Example device <span aria-hidden="true">↗</span></small></a><div class="card-power"><span>Power unavailable</span><button type="button" role="switch" aria-checked="false" aria-label="Schedule power" aria-describedby="offline-control-help" data-power="schedule" class="power-switch" disabled><span aria-hidden="true"></span></button></div></div><a class="device-control" href="#settings"><svg viewBox="0 0 36 36" aria-hidden="true"><path d="M5 10h26M5 26h26"/><circle cx="12" cy="10" r="4"/><circle cx="24" cy="26" r="4"/></svg><strong>Settings</strong><small>Example device <span aria-hidden="true">↗</span></small></a></nav></section>
+<p id="offline-control-help" class="control-help">Offline — switches are disabled. Current power state is unknown.</p><nav class="device-controls" aria-label="Example device controls"><div class="device-control control-card"><a class="control-card-link" href="#interval"><svg viewBox="0 0 36 36" aria-hidden="true"><circle cx="18" cy="18" r="13"/><path d="M18 10v8l6 4"/></svg><strong>Interval</strong><small>Example device <span aria-hidden="true">↗</span></small></a><div class="card-power"><span>Power unavailable</span><button type="button" role="switch" aria-checked="false" aria-label="Interval power" aria-describedby="offline-control-help" data-power="interval" class="power-switch" disabled><span aria-hidden="true"></span></button></div></div><div class="device-control control-card" data-moisture-card><a class="control-card-link" href="#moisture"><svg viewBox="0 0 36 36" aria-hidden="true"><path d="M18 4C14 11 8 17 8 23a10 10 0 0020 0c0-6-6-12-10-19z"/><path d="M8 23h5l3-5 4 9 3-4h5"/></svg><strong>Moisture Control</strong><small>Example device <span aria-hidden="true">↗</span></small></a><div class="card-power"><span>Power unavailable</span><button type="button" role="switch" aria-checked="false" aria-label="Moisture Control power" aria-describedby="offline-control-help" data-power="moisture" class="power-switch" disabled><span aria-hidden="true"></span></button></div></div>
+<div class="device-control control-card"><a class="control-card-link" href="#pump"><svg viewBox="0 0 36 36" aria-hidden="true"><path d="M18 4C14 11 8 17 8 23a10 10 0 0020 0c0-6-6-12-10-19z"/><path d="M13 23a5 5 0 005 5"/></svg><strong>Pump</strong><small>Example device <span aria-hidden="true">↗</span></small></a><div class="card-power"><span>Power unavailable</span><button type="button" role="switch" aria-checked="false" aria-label="Pump power" aria-describedby="offline-control-help" data-power="pump" class="power-switch" disabled><span aria-hidden="true"></span></button></div></div><div class="device-control control-card"><a class="control-card-link" href="#schedule"><svg viewBox="0 0 36 36" aria-hidden="true"><rect x="5" y="8" width="26" height="24" rx="3"/><path d="M11 4v8m14-8v8M5 17h26m-18 7 3 3 7-7"/></svg><strong>Schedule</strong><small>Example device <span aria-hidden="true">↗</span></small></a><div class="card-power"><span>Power unavailable</span><button type="button" role="switch" aria-checked="false" aria-label="Schedule power" aria-describedby="offline-control-help" data-power="schedule" class="power-switch" disabled><span aria-hidden="true"></span></button></div></div><a class="device-control" href="#settings"><svg viewBox="0 0 36 36" aria-hidden="true"><path d="M5 10h26M5 26h26"/><circle cx="12" cy="10" r="4"/><circle cx="24" cy="26" r="4"/></svg><strong>Settings</strong><small>Example device <span aria-hidden="true">↗</span></small></a></nav></section>
 <section id="interval" data-dashboard-view="interval" hidden aria-labelledby="heading-interval">
 <a class="dashboard-back" href="#device">← Device controls</a>
 <p class="eyebrow">EXAMPLE DEVICE · LIVING ROOM PLANTS</p>
-<h1 id="heading-interval" tabindex="-1">Interval</h1>
+<h1 id="heading-interval" tabindex="-1">Interval</h1><p class="control-connection">Interval stays enabled between watering runs. The pump runs for Duration, then stays off for IntervalMinutes before the next run. Turn Interval off to stop interval watering.</p>
 <p class="control-connection" data-control-connection>Offline · Current state unavailable</p>
 <div class="control-fields"><div class="control-field"><span>Name</span><strong>Interval</strong></div>
 <div class="control-field power-field"><div><span>Power</span><strong id="interval-power-label">Unknown</strong></div><button type="button" role="switch" aria-checked="false" aria-label="Interval power" data-power="interval" class="power-switch" disabled><span aria-hidden="true"></span></button></div></div>
 <p class="control-help">Device offline. Connect a device before changing its power.</p>
-</section><section id="pump" data-dashboard-view="pump" hidden aria-labelledby="heading-pump">
+</section><section id="moisture" data-dashboard-view="moisture" hidden aria-labelledby="heading-moisture">
+<a class="dashboard-back" href="#device">← Device controls</a>
+<p class="eyebrow">EXAMPLE DEVICE · LIVING ROOM PLANTS</p>
+<h1 id="heading-moisture" tabindex="-1">Moisture Control</h1>
+<p class="control-connection" data-control-connection>Offline · Current state unavailable</p>
+<div class="control-fields"><div class="control-field"><span>Name</span><strong>Moisture Control</strong></div>
+<div class="control-field power-field"><div><span>Power</span><strong id="moisture-power-label">Unknown</strong></div><button type="button" role="switch" aria-checked="false" aria-label="Moisture Control power" data-power="moisture" class="power-switch" disabled><span aria-hidden="true"></span></button></div></div>
+<p class="control-help">Device offline. Connect a device before changing its power.</p>
+</section>
+<section id="pump" data-dashboard-view="pump" hidden aria-labelledby="heading-pump">
 <a class="dashboard-back" href="#device">← Device controls</a>
 <p class="eyebrow">EXAMPLE DEVICE · LIVING ROOM PLANTS</p>
 <h1 id="heading-pump" tabindex="-1">Pump</h1>
@@ -64,7 +78,27 @@
 <p class="control-connection" data-control-connection>Offline · Current state unavailable</p><form id="device-settings" class="control-fields"><fieldset id="settings-fields" disabled><label class="control-field" for="setting-duration"><span>Duration</span><input id="setting-duration" name="duration" type="number" min="1" max="9007199254740991" step="1" value="5" required></label><label class="control-field" for="setting-hour"><span>Hour</span><input id="setting-hour" name="hour" type="number" min="0" max="23" step="1" value="7" required></label><label class="control-field" for="setting-minute"><span>Minute</span><input id="setting-minute" name="minute" type="number" min="0" max="59" step="1" value="0" required></label><label class="control-field" for="setting-intervalMinutes"><span>IntervalMinutes</span><input id="setting-intervalMinutes" name="intervalMinutes" type="number" min="1" max="9007199254740991" step="1" value="10" required></label><button class="button" type="submit">Save example settings</button></fieldset><p id="settings-result" role="status" aria-live="polite"></p></form><p class="control-help">Example values shown. Settings cannot be changed until a device is connected.</p>
 </section>
 </main>
+<dialog id="device-links-dialog" class="link-dialog" aria-labelledby="device-links-title">
+  <div class="link-dialog-heading"><h2 id="device-links-title">Connect your devices</h2><button type="button" class="button small link-secondary" data-close-links>Close</button></div>
+  <p>Connect or disconnect devices already authorized for this dashboard.</p>
+  <p id="device-links-status" role="status" aria-live="polite"></p>
+  <section aria-labelledby="rainmaker-connection-label"><h3 id="rainmaker-connection-label">Your RainMaker connection</h3><div id="link-device-list"></div></section>
+  <section id="link-disconnect-confirmation" class="link-confirmation" hidden aria-labelledby="link-confirm-title">
+    <h3 id="link-confirm-title">Disconnect device?</h3><p id="link-confirm-description"></p>
+    <div class="link-actions"><button type="button" id="link-disconnect-confirm" class="button small">Disconnect</button><button type="button" id="link-disconnect-cancel" class="button small link-secondary">Cancel</button></div>
+  </section>
+  <section class="link-sign-in" aria-labelledby="rainmaker-sign-in-title">
+    <h3 id="rainmaker-sign-in-title">Email-code sign-in (eligible accounts only)</h3>
+    <p>Google sign-in accounts cannot currently connect through this email-code form. Their connection needs a supported RainMaker sign-in integration. Use this form only if your RainMaker account supports code-based sign-in. Your existing device connection stays available.</p>
+    <form id="rainmaker-email-form"><label for="rainmaker-email">RainMaker email</label><input id="rainmaker-email" name="email" type="email" maxlength="254" autocomplete="email" required><button class="button small" type="submit">Send sign-in code</button></form>
+    <form id="rainmaker-code-form" hidden><p id="rainmaker-code-destination"></p><label for="rainmaker-code">Sign-in code</label><input id="rainmaker-code" name="code" type="text" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" required><button class="button small" type="submit">Verify RainMaker</button></form>
+  </section>
+  <div class="link-dialog-footer"><button type="button" id="disconnect-rainmaker" class="button small link-secondary">Disconnect RainMaker</button><p>Disconnecting here does not remove devices from your phone app.</p></div>
+</dialog>
+
   </div>
   <noscript><p>Enable JavaScript to open the dashboard. <a href="login.html">Return to login</a>.</p></noscript>
 </body>
 </html>
+
+

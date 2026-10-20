@@ -1,26 +1,13 @@
 'use strict';
-const { execFile } = require('node:child_process');
-const { promisify } = require('node:util');
 const fs = require('node:fs');
 const path = require('node:path');
-const execute = promisify(execFile);
+const { createRainMakerWorker } = require('./rainmaker-worker.cjs');
+const { createCommands } = require('./device-commands.cjs');
+const { sanitizeNode } = require('./device-state.cjs');
 const AUTH_URL = 'https://xqfgikcepbgcppfudpcm.supabase.co/auth/v1/user';
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-function sanitizeNode(node, observedAt) {
-  const online = node.status?.connectivity?.connected === true;
-  const params = node.params || {};
-  const power = name => online && typeof params[name]?.Power === 'boolean' ? params[name].Power : null;
-  const integer = name => online && Number.isSafeInteger(params.Settings?.[name]) ? params.Settings[name] : null;
-  return {
-    id: node.id, name: String(node.config?.info?.name || 'Plant watering').slice(0, 120),
-    online, observedAt, source: 'rainmaker-reported', writable: false,
-    power: { pump: power('Pump'), schedule: power('Schedule'), interval: power('Interval') },
-    settings: { duration: integer('Duration'), hour: integer('Hour'), minute: integer('Minute'), intervalMinutes: integer('IntervalMinutes') }
-  };
-}
-
-function createDeviceBridge({ verifyUser, readNodes, links = {} }) {
+function createDeviceBridge({ verifyUser, readNodes, writeNode, links = {} }) {
   // Copy and validate the explicit operator-managed ownership mapping at startup.
   const ownership = new Map();
   for (const [userId, nodeIds] of Object.entries(links)) {
@@ -33,26 +20,32 @@ function createDeviceBridge({ verifyUser, readNodes, links = {} }) {
   let inFlight;
   let cached;
   let cachedAt = 0;
-  async function snapshot() {
-    if (cached && Date.now() - cachedAt < 5000) return cached;
+  let cacheEpoch = 0;
+  const invalidate = () => { cacheEpoch++; cached = undefined; cachedAt = 0; };
+  const commands = writeNode ? createCommands({ readNodes, writeNode, invalidate }) : null;
+  async function snapshot(fresh = false) {
+    if (!fresh && cached && Date.now() - cachedAt < 5000) return cached;
+    const epoch = cacheEpoch;
     if (!inFlight) inFlight = Promise.resolve().then(readNodes).then(result => {
       if (!Array.isArray(result?.node_details)) throw new Error('Invalid cloud response');
-      cachedAt = Date.now();
-      cached = { nodes: result.node_details, observedAt: new Date(cachedAt).toISOString() };
-      return cached;
+      const snapshot = { nodes: result.node_details, observedAt: new Date().toISOString() };
+      if (epoch === cacheEpoch) { cachedAt = Date.now(); cached = snapshot; }
+      return snapshot;
     }).finally(() => { inFlight = undefined; });
     return inFlight;
   }
   return async function handle(request, response) {
     const pathname = request.url.split('?')[0];
+    const commandRoute = /^\/api\/devices\/([a-zA-Z0-9_-]{1,128})\/commands$/.exec(pathname);
     const setupFiles = { '/integration-account.html': ['device-account.html', 'text/html; charset=utf-8'], '/integration-account.js': ['device-account.js', 'text/javascript; charset=utf-8'] };
-    if (!['/api/devices', '/api/device-account'].includes(pathname) && !Object.hasOwn(setupFiles, pathname)) return false;
+    if (!commandRoute && !['/api/devices', '/api/device-account'].includes(pathname) && !Object.hasOwn(setupFiles, pathname)) return false;
     function send(status, body) {
       response.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' });
       response.end(JSON.stringify(body));
       return true;
     }
-    if (request.method !== 'GET') { response.setHeader('Allow', 'GET'); return send(405, { error: 'Read-only integration' }); }
+    const method = commandRoute ? 'POST' : 'GET';
+    if (request.method !== method) { response.setHeader('Allow', method); return send(405, { error: 'Method unavailable' }); }
     if (!/^(127\.0\.0\.1|localhost):[0-9]{1,5}$/.test(request.headers.host || '')) return send(403, { error: 'Request denied' });
     // Same-origin requests only. No CORS permissions or cookie authentication.
     const origin = request.headers.origin;
@@ -74,16 +67,38 @@ function createDeviceBridge({ verifyUser, readNodes, links = {} }) {
     if (!user || !uuid.test(user.id || '')) return send(401, { error: 'Sign in required' });
     if (pathname === '/api/device-account') return send(200, { userId: user.id, linked: ownership.has(user.id) });
     const allowed = ownership.get(user.id);
-    if (!allowed?.size) return send(200, { devices: [], readOnly: true });
+    if (commandRoute) {
+      if (!allowed?.has(commandRoute[1])) return send(403, { error: 'Device access unavailable' });
+      if (!commands) return send(405, { error: 'Commands are disabled' });
+      if (request.headers['content-type'] !== 'application/json') return send(415, { error: 'JSON required' });
+      let body;
+      try {
+        const chunks = [];
+        let length = 0;
+        request.setTimeout(5000, () => request.destroy());
+        for await (const chunk of request) {
+          length += chunk.length;
+          if (length > 4096) return send(413, { error: 'Command too large' });
+          chunks.push(chunk);
+        }
+        request.setTimeout(0);
+        body = JSON.parse(Buffer.concat(chunks).toString('utf8'));
+      } catch { return send(400, { error: 'Invalid command body' }); }
+      const result = await commands(user.id, commandRoute[1], body);
+      const { status, reportedNode, ...data } = result;
+      if (reportedNode) data.device = sanitizeNode(reportedNode, new Date().toISOString(), true);
+      return send(status, data);
+    }
+    if (!allowed?.size) return send(200, { devices: [], readOnly: !commands });
     try {
-      const result = await snapshot();
+      const result = await snapshot(new URL(request.url, 'http://localhost').searchParams.get('fresh') === '1');
       const seen = new Set();
       const devices = result.nodes.filter(node => {
         if (!allowed.has(node.id) || seen.has(node.id)) return false;
         seen.add(node.id);
         return true;
-      }).map(node => sanitizeNode(node, result.observedAt));
-      return send(200, { devices, readOnly: true });
+      }).map(node => sanitizeNode(node, result.observedAt, !!commands));
+      return send(200, { devices, readOnly: !commands });
     } catch { return send(503, { error: 'Device status unavailable' }); }
   };
 }
@@ -94,20 +109,22 @@ function bridgeFromEnvironment(env = process.env) {
     if (!env[key]) throw new Error('Device bridge configuration incomplete');
   }
   const links = JSON.parse(fs.readFileSync(env.DIGIFLOVV_DEVICE_LINKS, 'utf8'));
-  return createDeviceBridge({ links,
+  const worker = createRainMakerWorker({ python: env.DIGIFLOVV_RAINMAKER_PYTHON, script: path.join(__dirname, 'rainmaker-worker.py'),
+    env: { ...process.env, RM_USER_CONFIG_DIR: env.RM_USER_CONFIG_DIR, PYTHONIOENCODING: 'utf-8' } });
+  const bridge = createDeviceBridge({ links,
     verifyUser: async authorization => {
       const response = await fetch(AUTH_URL, { headers: { Authorization: authorization, apikey: env.DIGIFLOVV_SUPABASE_PUBLIC_KEY }, signal: AbortSignal.timeout(8000), redirect: 'error' });
       if ([401, 403].includes(response.status)) return null;
       if (!response.ok) throw new Error('Auth unavailable');
       return response.json();
     },
-    readNodes: async () => {
-      const { stdout } = await execute(env.DIGIFLOVV_RAINMAKER_PYTHON, [path.join(__dirname, 'rainmaker-read.py')], {
-        timeout: 15000, maxBuffer: 1024 * 1024, windowsHide: true,
-        env: { ...process.env, RM_USER_CONFIG_DIR: env.RM_USER_CONFIG_DIR, PYTHONIOENCODING: 'utf-8' }
-      });
-      return JSON.parse(stdout);
-    }
+    readNodes: worker.read,
+    writeNode: env.DIGIFLOVV_DEVICE_WRITES === '1' ? async (nodeId, payload) => {
+      const result = await worker.write(nodeId, payload);
+      if (result.accepted !== true) throw new Error('Write unconfirmed');
+    } : undefined
   });
+  bridge.close = worker.close;
+  return bridge;
 }
 module.exports = { createDeviceBridge, bridgeFromEnvironment, sanitizeNode };

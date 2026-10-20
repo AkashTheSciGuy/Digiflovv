@@ -55,3 +55,21 @@ This update supersedes the account-preview results above.
 ## Example-device dashboard — October 20, 2026
 
 Scope narrowed by owner to device list and four buttons pending screenshots. Interval, Pump, Schedule and Settings open placeholder views; no inner controls or hardware integration added. Static checks and build passed. All 9 auth/browser scenarios passed with device navigation and back links, across three engines and desktop/mobile widths. Device-page accessibility checks passed; mobile screenshot visually reviewed. No deployment performed.
+
+## RainMaker integration acceptance — October 20, 2026
+
+37 unit/integration tests pass. Existing nine mocked authentication browser scenarios pass. Additional three-browser mocked dashboard scenarios pass for device selection, stale/offline state, settings drafts/saves and non-optimistic commands. Static checks and local build pass.
+
+Separate live checks: owner confirmed a phone Minute change reached the website; website changed Minute to 2 and restored 0, independently verified through RainMaker; a supervised website Pump ON/OFF test produced matching reports, and owner confirmed physical start/stop plus phone OFF. Pump ended OFF, Minute=0. No firmware upload or public deployment occurred. Schedule/interval timing and automatic duration cutoff were not physically tested during this session. See DEVICE-INTEGRATION.md for limitations.
+
+### Moisture and latency update
+
+Added Moisture Control card/detail and validated commands. Replaced per-request Python launches with a persistent, certificate-verified HTTP worker. Read-back returns with the command response; pending reports poll freshly at one-second intervals, idle reports at five seconds. Immediate amber pending feedback preserves reported aria-checked state. 43 unit/integration tests cover the worker lifecycle, timeouts, malformed output, moisture conflicts, ownership and prior behavior. Browser tests cover moisture navigation/commands and immediate pending versus confirmed state. Real settings change/restore succeeded without starting the pump. Warm read samples: 308/784/337 ms versus earlier standalone 681/707/1209 ms; no physical latency claim is made.
+
+## 2026-10-20 watering interval repair
+53 automated web/backend tests pass. Device C++ controller selftests pass (100000 simulatedticks, boundary/ownership/mode/input/rollover cases). Seven cloudfirmware controls checks passed before final stopqueue review. Physical two-cycle test:60003ms ON,60002ms OFF,60003ms ON, userconfirmed. Finalqueuefix flashed; controller selftestsPASS and read-only/OFF-only cloudcheckallmodesOFF. Firmware settingsremainDuration1,IntervalMinutes1,Hour7,Minute0. No ADC sensor behavior, destructivefactory reset or OTAreflash testwasperformed. Furthermode-enablecheckblockedbyautomaticreviewtoavoidmorewatering; notcounted aspassed. Detailed evidence: firmware/README.md; tasklocal interval-proof-result.json and filteredUSB timinglog.
+
+
+## Device-linking feature
+66backend/unit tests pass, including13new linking/login/security cases. New Chromium/Firefox/WebKit mobile management flow and accessibility tests passed with mocked provider/APIs; no emails or watering occurred. Existing3devicebrowser and9authenticationbrowser scenarios also passed. Productionhealth200, unauthenticated linking/device APIs401, foreignorigin403; the originalownerdevice remainedlisted. LiveOTP/accountmatch and disconnect/reconnect still require useracceptance. Servercredential/key scan of25releasefiles passed.
+

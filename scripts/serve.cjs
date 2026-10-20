@@ -52,8 +52,11 @@ function startServer() {
     process.exitCode = 1;
   } else {
     const { bridgeFromEnvironment } = require('./device-bridge.cjs');
-    const server = createServer({ deviceBridge: bridgeFromEnvironment() });
+    const deviceBridge = bridgeFromEnvironment();
+    const server = createServer({ deviceBridge });
+    server.once('close', () => deviceBridge?.close?.());
     server.on('error', error => {
+      deviceBridge?.close?.();
       console.error(error.code === 'EADDRINUSE'
         ? `Port ${port} is already in use. Stop the existing preview or run: npm run dev -- --port ${port === 65535 ? 5500 : port + 1}`
         : 'The local server could not start. Check local network permissions.');
