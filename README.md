@@ -1,6 +1,6 @@
 # DigiFlovv local product showcase
 
-This release is a responsive product showcase and enquiry website. Payments, checkout and order creation are excluded. Sign-up and login pages are included as an explicitly labelled frontend preview; real authentication will be connected to Supabase in the next phase. Nothing is deployed by starting, building, or testing this project.
+This release is a responsive product showcase and enquiry website. Payments, checkout and order creation are excluded. Sign-up and login use Supabase email/password authentication, with email confirmation and an empty dashboard. Nothing is deployed by starting, building, or testing this project.
 
 ## Start in VS Code
 
@@ -32,7 +32,7 @@ VS Code's **Terminal > Run Task > DigiFlovv: Start website** runs the same comma
 
 ## Account pages
 
-Open `/signup.html` or `/login.html` and use sample details to preview the flow. Valid form input opens an empty dashboard with logout. No accounts are created, credentials verified, or passwords saved or sent. The temporary browser marker is not authentication or a security boundary. See [AUTH-PREVIEW.md](AUTH-PREVIEW.md) for implementation details and the Supabase handoff.
+Open `/signup.html` to create an account and confirm your email, then `/login.html` to sign in. Supabase manages sessions; the dashboard stays empty. See [SUPABASE-SETUP.md](SUPABASE-SETUP.md) for redirects, email delivery, security boundaries and live acceptance steps.
 
 ## Update content
 
@@ -84,7 +84,7 @@ The browser download is needed once per computer. The development dependencies a
 - `check`: JavaScript syntax, HTML IDs, local assets, internal links, and absence of purchase controls.
 - `test`: enquiry validation, media safety, schedule edge cases, retained checkout regressions, HTTP handling, security headers, and 100 concurrent local requests.
 - `test:browser`: Chromium, Firefox, WebKit; 1440, 768, 390, and 320 pixel widths; automated WCAG accessibility checks, mobile menu, form states, FAQs, native dialogs, simulation, configured gallery/email handoff, and no-JavaScript fallback.
-- `test:auth`: signup/login validation, blank dashboard, logout, expiry, unavailable storage, safe redirects, accessibility and no-JavaScript behavior across three browsers and four widths.
+- `test:auth`: signup/login validation, blank dashboard, logout, confirmation callbacks and mocked API behavior across three browsers and three widths.
 - Browser screenshots and structured results are saved in ignored `test-results/`.
 
 These tests do not establish compatibility with every real device, assistive technology, or production network. No live messages or payments are sent by tests.
@@ -121,7 +121,7 @@ This requires a valid `siteUrl` and generates indexable metadata, canonical URL,
 
 ## Security and operational limits
 
-The local server binds only to `127.0.0.1`. It accepts GET/HEAD for public assets, denies private paths and Windows alternate data streams, and returns generic error responses. It sets CSP, anti-framing, MIME-sniffing and referrer headers. Runtime code uses no external scripts or application database.
+The local server binds only to `127.0.0.1`. It accepts GET/HEAD for public assets, denies private paths and Windows alternate data streams, and returns generic error responses. It sets CSP, anti-framing, MIME-sniffing and referrer headers. The Supabase SDK is bundled locally; account requests go directly to the configured Supabase project over HTTPS. No customer data tables are queried.
 
 The server is a local development server, not a production reverse proxy. For a future public release, serve `release/` over HTTPS with appropriate hosting headers, caching, monitoring and backups. No database or admin credentials should be added merely to run this showcase.
 

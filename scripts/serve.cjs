@@ -10,7 +10,7 @@ function createServer() {
     response.setHeader('Cache-Control', 'no-store');
     response.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
     response.setHeader('X-Frame-Options', 'DENY');
-    response.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' https:; media-src 'self' https:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'");
+    response.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' https:; media-src 'self' https:; connect-src 'self' https://xqfgikcepbgcppfudpcm.supabase.co; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'");
     if (request.url === '/api/health' && ['GET', 'HEAD'].includes(request.method)) {
       response.writeHead(200, { 'Content-Type': 'application/json' });
       return response.end(request.method === 'HEAD' ? undefined : JSON.stringify({ ok: true, service: 'digiflovv', mode: 'showcase' }));

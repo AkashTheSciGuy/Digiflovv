@@ -37,3 +37,17 @@ Run npm run check, npm test, npm run test:browser and npm run check:launch to re
 - Accounts remain a clearly labelled preview. No credential verification, account persistence, Supabase integration or dashboard features are claimed. Passwords are not stored or sent.
 
 Reproduce account checks with `npm run test:auth`. See AUTH-PREVIEW.md for the next integration phase.
+
+## Supabase integration update — October 20, 2026
+
+This update supersedes the account-preview results above.
+
+- Official Supabase client bundled locally; signup, confirmation callback, password login, verified-user dashboard guard and local logout implemented.
+- Live public settings endpoint accepted the supplied key: signup enabled, email provider enabled, email confirmation required.
+- All-page static checks and release build passed.
+- Unit/integration tests: 14 passed, 0 failed (two obsolete preview-marker tests removed).
+- Authentication browser tests: 9 scenarios passed across Chromium, Firefox and WebKit at 1440, 390 and 320 pixels. Supabase API responses are mocked; tests include confirmation pending, PKCE code exchange, invalid password, login, blank dashboard, reload, logout, responsive layout and signup accessibility.
+- Dependency audit: zero reported vulnerabilities.
+- Local server restarted and its Supabase connection policy verified.
+- No real user was created, no confirmation email was sent by tests, and no Netlify deployment was performed. Real inbox delivery and live-account acceptance remain pending. Production redirect and custom SMTP settings require dashboard confirmation.
+- Storefront regression after Supabase integration: all 18 browser scenarios passed.

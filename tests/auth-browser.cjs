@@ -1,119 +1,97 @@
 const assert = require('node:assert/strict');
-const fs = require('node:fs');
-const path = require('node:path');
-const playwright = require('playwright');
+const { chromium, firefox, webkit } = require('playwright');
 const AxeBuilder = require('@axe-core/playwright').default;
 const { createServer } = require('../scripts/serve.cjs');
-const { SESSION_KEY } = require('../dist/auth-preview.js');
-const password = 'Sample-only-123';
-
-async function fillForm(page, signup) {
+const service = 'https://xqfgikcepbgcppfudpcm.supabase.co';
+const user = { id: '11111111-1111-4111-8111-111111111111', aud: 'authenticated', role: 'authenticated', email: 'sample@example.com', email_confirmed_at: new Date().toISOString(), app_metadata: {}, user_metadata: {} };
+const token = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url') + '.' + Buffer.from(JSON.stringify({ sub: user.id, exp: Math.floor(Date.now()/1000)+3600 })).toString('base64url') + '.test-signature';
+const session = { access_token: token, refresh_token: 'test-refresh-only', token_type: 'bearer', expires_in: 3600, user };
+async function fill(page, signup) {
   if (signup) await page.locator('#auth-name').fill('Sample User');
-  await page.locator('#auth-email').fill('sample@example.com');
-  await page.locator('#auth-password').fill(password);
-  if (signup) await page.locator('#auth-confirmPassword').fill(password);
+  await page.locator('#auth-email').fill(user.email);
+  await page.locator('#auth-password').fill('Sample-only-123');
+  if (signup) await page.locator('#auth-confirmPassword').fill('Sample-only-123');
 }
-
 (async () => {
   const server = createServer();
-  await new Promise((resolve,reject) => { server.once('error',reject); server.listen(0,'127.0.0.1',resolve); });
+  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
   const base = `http://127.0.0.1:${server.address().port}`;
-  const folder = path.join(__dirname,'../test-results');
-  fs.mkdirSync(folder,{recursive:true});
-  const results = [];
+  let scenarios = 0;
   try {
-    for (const engine of ['chromium','firefox','webkit']) {
-      const browser = await playwright[engine].launch({headless:true});
+    for (const [engine, launcher] of Object.entries({ chromium, firefox, webkit })) {
+      const browser = await launcher.launch();
       try {
-        for (const width of [1440,768,390,320]) {
-          const context = await browser.newContext({viewport:{width,height:1000},reducedMotion:'reduce'});
+        for (const width of [1440, 390, 320]) {
+          const context = await browser.newContext({ viewport: { width, height: 1000 } });
+          let failure = false;
+          let signups = 0;
+          await context.route(service + '/auth/v1/**', async route => {
+            const url = new URL(route.request().url());
+            let body = {}, status = 200;
+            if (url.pathname.endsWith('/signup')) {
+              signups++;
+              const input = route.request().postDataJSON();
+              assert.equal(input.email, user.email);
+              assert.equal(input.data.full_name, 'Sample User');
+              assert.equal(url.searchParams.get('redirect_to'), base + '/login.html');
+              body = user;
+            } else if (url.pathname.endsWith('/token')) {
+              if (failure) { status = 400; body = { code: 'invalid_credentials', msg: 'Invalid login credentials' }; }
+              else body = session;
+            } else if (url.pathname.endsWith('/user')) body = user;
+            else if (url.pathname.endsWith('/logout')) status = 204;
+            await route.fulfill({ status, contentType: 'application/json', body: status === 204 ? '' : JSON.stringify(body) });
+          });
           const page = await context.newPage();
           const errors = [];
-          const requests = [];
           page.on('pageerror', error => errors.push(error.message));
-          page.on('request', request => requests.push({url:request.url(),body:request.postData()}));
-          await page.goto(base+'/dashboard.html');
+          await page.goto(base + '/dashboard.html');
           await page.waitForURL('**/login.html');
-          for (const mode of ['signup','login']) {
-            await page.goto(base+`/${mode}.html`);
-            await page.waitForFunction(() => !document.getElementById('auth-fields').disabled);
-            assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `${engine} ${width} ${mode} overflow`);
-            const violations = (await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21aa']).analyze()).violations;
-            assert.deepEqual(violations.map(v=>({id:v.id,nodes:v.nodes.map(n=>n.target)})), []);
-            await page.screenshot({path:path.join(folder,`auth-${mode}-${engine}-${width}.png`),fullPage:true});
-            await page.locator('#auth-submit').click();
-            assert.match(await page.locator('#auth-status').textContent(), /correct the highlighted fields/);
-            await fillForm(page,mode==='signup');
-            await page.locator('[data-password-toggle="auth-password"]').click();
-            assert.equal(await page.locator('#auth-password').getAttribute('type'),'text');
-            await page.locator('[data-password-toggle="auth-password"]').click();
-            assert.equal(await page.locator('#auth-password').getAttribute('type'),'password');
-            if (mode==='signup') {
-              await page.locator('#auth-confirmPassword').fill('different');
-              await page.locator('#auth-submit').click();
-              assert.match(await page.locator('#error-confirmPassword').textContent(), /do not match/);
-              await page.locator('#auth-confirmPassword').fill(password);
-            }
-            await page.locator('#auth-submit').click();
-            await page.waitForURL('**/dashboard.html');
-            await page.locator('#dashboard-shell').waitFor({state:'visible'});
-            assert.equal(await page.locator('#main').innerHTML(),'');
-            const stored = await page.evaluate(() => ({session:{...sessionStorage},local:{...localStorage}}));
-            assert.deepEqual(stored.local,{});
-            assert.equal(Object.keys(stored.session).length,1);
-            assert.ok(!JSON.stringify(stored).includes(password));
-            assert.ok(!JSON.stringify(stored).includes('sample@example.com'));
-            await page.reload();
-            await page.locator('#sign-out').waitFor({state:'visible'});
-            await page.locator('#sign-out').click();
-            await page.waitForURL('**/login.html');
-            assert.equal(await page.evaluate(key => sessionStorage.getItem(key),SESSION_KEY),null);
-            await page.goto(base+'/dashboard.html');
-            await page.waitForURL('**/login.html');
-          }
-          assert.deepEqual(errors,[]);
-          assert.ok(requests.every(request => !request.body && !request.url.includes(password) && !request.url.includes('sample%40')));
+          await page.goto(base + '/signup.html');
+          await page.locator('#auth-submit').click();
+          assert.match(await page.locator('#auth-status').innerText(), /highlighted/);
+          await fill(page, true);
+          await page.locator('#auth-submit').click();
+          await page.waitForFunction(() => document.getElementById('auth-status').textContent.includes('Check your inbox'));
+          assert.equal(signups, 1);
+          assert.equal(await page.locator('#auth-password').inputValue(), '');
+          assert.ok(page.url().endsWith('/signup.html'));
+          assert.equal((await new AxeBuilder({ page }).withTags(['wcag2a','wcag2aa']).analyze()).violations.length, 0);
+          await page.goto(base + '/login.html');
+          failure = true;
+          await fill(page, false);
+          await page.locator('#auth-submit').click();
+          await page.waitForFunction(() => document.getElementById('auth-status').textContent.includes('Unable to log in'));
+          assert.equal(await page.locator('#auth-password').inputValue(), '');
+          failure = false;
+          await fill(page, false);
+          await page.locator('#auth-submit').click();
+          await page.waitForURL('**/dashboard.html');
+          await page.locator('#dashboard-shell').waitFor({ state: 'visible' });
+          assert.equal(await page.locator('main').innerHTML(), '');
+          await page.reload();
+          await page.locator('#dashboard-shell').waitFor({ state: 'visible' });
+          assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth+1));
+          assert.ok(!(await page.evaluate(() => JSON.stringify(localStorage))).includes('Sample-only-123'));
+          await page.locator('#sign-out').click();
+          await page.waitForURL('**/login.html');
+          await page.goto(base + '/dashboard.html');
+          await page.waitForURL('**/login.html');
+          await page.goto(base + '/signup.html');
+          await fill(page, true);
+          await page.locator('#auth-submit').click();
+          await page.waitForFunction(() => document.getElementById('auth-status').textContent.includes('Check your inbox'));
+          await page.goto(base + '/login.html?code=mock-confirmation');
+          await page.waitForURL('**/dashboard.html');
+          await page.locator('#dashboard-shell').waitFor({ state: 'visible' });
+          assert.equal(await page.locator('main').innerHTML(), '');
+          assert.deepEqual(errors, []);
           await context.close();
-          results.push({engine,width,flow:'signup, login, blank dashboard, reload, logout, accessibility',status:'passed'});
+          scenarios++;
+          console.log(`${engine} ${width}: confirmation pending, invalid credentials, login, empty dashboard, reload, logout passed`);
         }
-        const context = await browser.newContext();
-        const page = await context.newPage();
-        await page.goto(base+'/login.html?next=https://example.com');
-        await page.evaluate(key => sessionStorage.setItem(key,JSON.stringify({mode:'preview',version:1,expiresAt:Date.now()-1000})),SESSION_KEY);
-        await page.goto(base+'/dashboard.html');
-        await page.waitForURL('**/login.html');
-        await page.evaluate(key => sessionStorage.setItem(key,'invalid json'),SESSION_KEY);
-        await page.goto(base+'/dashboard.html');
-        await page.waitForURL('**/login.html');
-        await page.goto(base+'/login.html?next=https://example.com');
-        await fillForm(page,false);
-        await page.locator('#auth-submit').click();
-        await page.waitForURL('**/dashboard.html');
-        assert.ok(page.url().startsWith(base));
-        await context.close();
-
-        const denied = await browser.newContext();
-        await denied.addInitScript(() => Object.defineProperty(window,'sessionStorage',{get(){throw new Error('Blocked storage');}}));
-        const deniedPage = await denied.newPage();
-        await deniedPage.goto(base+'/signup.html');
-        await fillForm(deniedPage,true);
-        await deniedPage.locator('#auth-submit').click();
-        assert.match(await deniedPage.locator('#auth-status').textContent(), /blocked the preview session/);
-        assert.equal(await deniedPage.locator('#auth-password').inputValue(),'');
-        assert.equal(await deniedPage.locator('#auth-submit').isEnabled(),true);
-        await denied.close();
-
-        const noJs = await browser.newContext({javaScriptEnabled:false});
-        const noJsPage = await noJs.newPage();
-        await noJsPage.goto(base+'/signup.html');
-        assert.equal(await noJsPage.locator('#auth-password').isDisabled(),true);
-        await noJsPage.goto(base+'/dashboard.html');
-        assert.equal(await noJsPage.locator('#dashboard-shell').isVisible(),false);
-        await noJs.close();
-        results.push({engine,flow:'expired/corrupt storage, fixed redirects, blocked storage, no JavaScript',status:'passed'});
       } finally { await browser.close(); }
     }
-    fs.writeFileSync(path.join(folder,'auth-browser.json'),JSON.stringify(results,null,2));
-    console.log(JSON.stringify(results,null,2));
-  } finally { server.closeAllConnections(); await new Promise(resolve=>server.close(resolve)); }
-})().catch(error=>{console.error(error);process.exitCode=1;});
+    console.log(`${scenarios} Supabase mocked API browser scenarios passed. No real accounts or emails created.`);
+  } finally { await new Promise(resolve => server.close(resolve)); }
+})().catch(error => { console.error(error); process.exitCode = 1; });

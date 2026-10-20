@@ -36,7 +36,7 @@ try {
   fs.writeFileSync(path.join(stage, 'index.html'), html);
   fs.writeFileSync(path.join(stage, 'robots.txt'), publish ? `User-agent: *\nAllow: /\nSitemap: ${origin}/sitemap.xml\n` : 'User-agent: *\nDisallow: /\n');
   fs.writeFileSync(path.join(stage, 'sitemap.xml'), `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${origin ? `<url><loc>${origin.replace(/&/g,'&amp;')}/</loc></url>` : ''}</urlset>\n`);
-  fs.writeFileSync(path.join(stage, '_headers'), '/*\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: strict-origin-when-cross-origin\n  X-Frame-Options: DENY\n');
+  // Hosting security headers are copied from dist/_headers.
   fs.rmSync(output, { recursive: true, force: true });
   fs.renameSync(stage, output);
   console.log(`Built ${publish ? 'public' : 'local-review'} static website in release/. Nothing was deployed.`);

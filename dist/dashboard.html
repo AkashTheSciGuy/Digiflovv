@@ -9,14 +9,16 @@
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="auth.css">
-  <script src="auth-preview.js" defer></script>
+  <script src="auth-config.js" defer></script>
+  <script src="vendor/supabase.js" defer></script>
+  <script src="auth-validation.js" defer></script>
   <script src="auth.js" defer></script>
 </head>
 <body class="dashboard-page" data-auth-page="dashboard">
   <div id="dashboard-shell" hidden>
-    <header class="dashboard-header"><a class="brand" href="index.html" aria-label="DigiFlovv home">digi<span>flovv</span><b aria-hidden="true">✳</b></a><div class="dashboard-actions"><span class="preview-session">Preview session</span><button type="button" id="sign-out" class="button small">Log out</button></div></header>
+    <header class="dashboard-header"><a class="brand" href="index.html" aria-label="DigiFlovv home">digi<span>flovv</span><b aria-hidden="true">✳</b></a><div class="dashboard-actions"><span class="preview-session">Your account</span><button type="button" id="sign-out" class="button small">Log out</button></div></header>
     <main id="main" class="dashboard-empty" aria-label="Dashboard"></main>
   </div>
-  <noscript><p>Enable JavaScript to open the dashboard preview. <a href="login.html">Return to login</a>.</p></noscript>
+  <noscript><p>Enable JavaScript to open the dashboard. <a href="login.html">Return to login</a>.</p></noscript>
 </body>
 </html>

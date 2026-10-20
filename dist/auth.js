@@ -1,37 +1,59 @@
 "use strict";
-
 (() => {
-  const auth = window.DigiFlovvAuthPreview;
   const mode = document.body.dataset.authPage;
-  if (!auth) return;
-
-  function readSession() {
-    try { return auth.readPreview(window.sessionStorage); } catch { return null; }
+  const validation = window.DigiFlovvAuthValidation;
+  const config = window.DIGIFLOVV_AUTH_CONFIG;
+  let client;
+  let navigating = false;
+  function navigate(page) {
+    if (navigating) return;
+    navigating = true;
+    window.location.replace(page);
   }
-
+  try {
+    const url = new URL(config.url);
+    if (url.protocol !== "https:" || !/^[a-z0-9]+\.supabase\.co$/.test(url.hostname) ||
+        !config.publishableKey.startsWith("sb_publishable_")) throw new Error("Invalid config");
+    client = window.DigiFlovvCreateClient(url.origin, config.publishableKey, {
+      auth: { flowType: "pkce", persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+    });
+    sessionStorage.removeItem("digiflovv.auth.preview.v1");
+  } catch {
+    if (mode === "dashboard") navigate("login.html");
+    else document.getElementById("auth-status").textContent = "Account access is unavailable. Please allow browser storage and try again later.";
+    return;
+  }
   if (mode === "dashboard") {
-    // This is only a navigation guard. The dashboard contains no private data.
-    let expiry;
-    function checkSession() {
-      clearTimeout(expiry);
-      const session = readSession();
-      if (!session) { window.location.replace("login.html"); return; }
-      document.getElementById("dashboard-shell").hidden = false;
-      expiry = window.setTimeout(checkSession, Math.min(session.expiresAt - Date.now(), auth.DURATION_MS));
+    const shell = document.getElementById("dashboard-shell");
+    const logout = document.getElementById("sign-out");
+    let checking = false;
+    async function checkSession() {
+      if (checking) return;
+      checking = true;
+      try {
+        const { data, error } = await client.auth.getUser();
+        if (error || !data.user) { shell.hidden = true; navigate("login.html"); return; }
+        shell.hidden = false;
+      } catch { shell.hidden = true; navigate("login.html"); }
+      finally { checking = false; }
     }
-    document.getElementById("sign-out").addEventListener("click", () => {
-      try { auth.endPreview(window.sessionStorage); }
-      catch { /* Navigation still returns to the public login form. */ }
-      document.getElementById("dashboard-shell").hidden = true;
-      window.location.replace("login.html");
+    client.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_OUT" && !logout.disabled) { shell.hidden = true; navigate("login.html"); }
+    });
+    logout.addEventListener("click", async () => {
+      logout.disabled = true;
+      try {
+        const { error } = await client.auth.signOut({ scope: "local" });
+        if (error) throw error;
+        shell.hidden = true;
+        navigate("login.html");
+      } catch { logout.textContent = "Retry logout"; logout.disabled = false; }
     });
     window.addEventListener("pageshow", checkSession);
     document.addEventListener("visibilitychange", () => { if (!document.hidden) checkSession(); });
-    window.addEventListener("pagehide", () => clearTimeout(expiry));
     checkSession();
     return;
   }
-
   const form = document.getElementById("auth-form");
   const fields = document.getElementById("auth-fields");
   const status = document.getElementById("auth-status");
@@ -48,7 +70,7 @@
     form.elements[name].setAttribute("aria-invalid", String(Boolean(error)));
   }
   function updateField(name) {
-    const errors = auth.validateCredentials(mode, values());
+    const errors = validation.validateCredentials(mode, values());
     renderError(name, errors[name]);
     if (name === "password" && touched.has("confirmPassword")) renderError("confirmPassword", errors.confirmPassword);
   }
@@ -73,10 +95,16 @@
     });
   });
 
-  form.addEventListener("submit", event => {
+  function resetButton() {
+    submitting = false;
+    submit.disabled = false;
+    submit.textContent = mode === "signup" ? "Create account" : "Log in";
+  }
+  form.addEventListener("submit", async event => {
     event.preventDefault();
     if (submitting) return;
-    const errors = auth.validateCredentials(mode, values());
+    const input = values();
+    const errors = validation.validateCredentials(mode, input);
     fieldNames.forEach(name => { touched.add(name); renderError(name, errors[name]); });
     if (Object.keys(errors).length) {
       status.textContent = "Please correct the highlighted fields.";
@@ -85,31 +113,55 @@
     }
     submitting = true;
     submit.disabled = true;
-    submit.textContent = "Opening preview…";
-    status.textContent = "Opening the empty dashboard preview. No account is created and credentials are not verified.";
+    submit.textContent = "Please wait…";
+    status.textContent = "";
     try {
-      // The adapter receives only storage, never credentials or identity.
-      auth.beginPreview(window.sessionStorage);
+      const result = mode === "signup"
+        ? await client.auth.signUp({
+            email: input.email.trim(), password: input.password,
+            options: { data: { full_name: input.name.trim() },
+              emailRedirectTo: new URL("login.html", window.location.href).href }
+          })
+        : await client.auth.signInWithPassword({ email: input.email.trim(), password: input.password });
+      if (result.error) {
+        const code = result.error.code;
+        status.textContent = code === "email_not_confirmed"
+          ? "Confirm your email using the link in your inbox, then log in."
+          : result.error.status === 429
+          ? "Too many attempts. Please wait a few minutes before trying again."
+          : mode === "login"
+          ? "Unable to log in. Check your email and password, confirm your email, and try again."
+          : "Unable to complete sign-up. Check your details and connection, then try again. If you already have an account, log in.";
+        return;
+      }
       form.reset();
-      window.location.assign("dashboard.html");
+      if (result.data.session) navigate("dashboard.html");
+      else status.textContent = "Check your inbox for a confirmation link, then return here to log in. If you already have an account, use Log in.";
     } catch {
-      // Clear password inputs even when storage is unavailable.
+      status.textContent = "We could not reach account services. Check your connection and try again.";
+    } finally {
       form.elements.password.value = "";
       if (mode === "signup") form.elements.confirmPassword.value = "";
-      status.textContent = "This browser blocked the preview session. Allow session storage for this site, then try again. No account was created.";
-      submitting = false;
-      submit.disabled = false;
-      submit.textContent = mode === "signup" ? "Create account — preview" : "Log in — preview";
+      resetButton();
     }
   });
-  // Without JavaScript, disabled controls prevent credential submission in URLs.
   fields.disabled = false;
+  client.auth.onAuthStateChange((event, session) => {
+    if (event === "SIGNED_IN" && session && !submitting) navigate("dashboard.html");
+  });
+  // Finish PKCE confirmation before clearing callback parameters.
+  client.auth.getSession().then(({ data, error }) => {
+    const callback = new URL(window.location.href);
+    const failed = error || callback.searchParams.has("error") || callback.hash.includes("error");
+    if (callback.search || callback.hash) history.replaceState(null, "", callback.pathname);
+    if (failed) status.textContent = "That confirmation link could not be completed. Try logging in, or request a new confirmation by signing up again.";
+    else if (data.session) navigate("dashboard.html");
+  }).catch(() => { status.textContent = "Account services are unavailable. Please try again."; });
   window.addEventListener("pageshow", event => {
     if (!event.persisted) return;
     form.reset();
-    submitting = false;
-    submit.disabled = false;
-    submit.textContent = mode === "signup" ? "Create account — preview" : "Log in — preview";
+    touched.clear();
+    resetButton();
     status.textContent = "";
     fieldNames.forEach(name => renderError(name));
   });
